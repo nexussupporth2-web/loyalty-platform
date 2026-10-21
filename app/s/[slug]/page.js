@@ -30,11 +30,14 @@ export default async function StorePage({ params, searchParams }) {
       <h2>Your loyalty card</h2>
       <LoyaltyCard name={s.business_name} logo={s.logo_url} />
 
-      <button className="btn" disabled style={{ marginTop: 16 }}>Join the loyalty program (coming next)</button>
+      <a className="btn" href={`/s/${s.slug}/join`} style={{ marginTop: 16 }}>Join the loyalty program</a>
+      <p className="sub" style={{ textAlign: 'center' }}>
+        Already a member? <a href={`/s/${s.slug}/join?mode=login`}>Log in</a>
+      </p>
 
       <h2>Contact</h2>
       <p>{s.contact_person}<br /><a href={`tel:${s.contact_number.replace(/[^+\d]/g, '')}`}>{s.contact_number}</a></p>
       <p>{s.address}<br /><a href={map} target="_blank" rel="noopener noreferrer">Open in maps</a></p>
     </>
   );
-    }
+}
