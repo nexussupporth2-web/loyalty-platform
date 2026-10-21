@@ -6,7 +6,9 @@ function twoLines(name) {
   return [w.slice(0, i).join(' '), w.slice(i).join(' ')];
 }
 
-export default function LoyaltyCard({ name, logo, member = 'YOUR NAME', tier = 'Silver' }) {
+export default function LoyaltyCard({
+  name, logo, member = 'YOUR NAME', tier = 'Silver', number = '0000 0000 0000 0000',
+}) {
   const [l1, l2] = twoLines(name);
   return (
     <div className="lc" data-t={tier}>
@@ -14,7 +16,7 @@ export default function LoyaltyCard({ name, logo, member = 'YOUR NAME', tier = '
       <div className="in">
         <div className="row"><span className="sm">Loyalty card</span><span className="badge">{tier} member</span></div>
         <div className="chip" />
-        <p className="num">0000 0000 0000 0000</p>
+        <p className="num">{number}</p>
         <div className="row end">
           <div><div className="sm">Member name</div><div className="mn">{member}</div></div>
           <div className="row" style={{ gap: 6 }}>
@@ -25,4 +27,4 @@ export default function LoyaltyCard({ name, logo, member = 'YOUR NAME', tier = '
       </div>
     </div>
   );
-}
+                                                 }
