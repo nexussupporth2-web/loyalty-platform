@@ -1,7 +1,9 @@
 import { notFound } from 'next/navigation';
 import { headers } from 'next/headers';
 import { admin } from '../../../lib/supabase';
+import { mapHref } from '../../../lib/links';
 import SocialLinks from '../../../components/SocialLinks';
+import StoreGallery from '../../../components/StoreGallery';
 import StandeeSection from '../../../components/StandeeSection';
 
 export const dynamic = 'force-dynamic';
@@ -12,7 +14,6 @@ export default async function StorePage({ params, searchParams }) {
   if (!s) notFound();
 
   const url = `https://${headers().get('host')}/s/${s.slug}`;
-  const map = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(s.address);
 
   return (
     <>
@@ -38,6 +39,8 @@ export default async function StorePage({ params, searchParams }) {
           </svg>
         </a>
       </div>
+
+      <StoreGallery images={s.store_images} />
       {s.business_details && <p>{s.business_details}</p>}
 
       <a className="btn" href={`/s/${s.slug}/join`} style={{ marginTop: 16 }}>Join the loyalty program</a>
@@ -49,10 +52,10 @@ export default async function StorePage({ params, searchParams }) {
 
       <h2>Contact</h2>
       <p>{s.contact_person}<br /><a href={`tel:${s.contact_number.replace(/[^+\d]/g, '')}`}>{s.contact_number}</a></p>
-      <p>{s.address}<br /><a href={map} target="_blank" rel="noopener noreferrer">Open in maps</a></p>
+      <p>{s.address}<br /><a href={mapHref(s)} target="_blank" rel="noopener noreferrer">Open in maps</a></p>
 
       <h2>QR standee</h2>
       <StandeeSection store={s} url={url} />
     </>
   );
-            }
+          }
