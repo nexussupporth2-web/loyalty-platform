@@ -42,7 +42,7 @@ export default async function EditPage({ params, searchParams }) {
       {err}
       <form action={saveStore}>
         <input type="hidden" name="slug" value={s.slug} />
-        <StoreFields d={s} passwordLabel="New owner password (leave empty to keep the current one)" />
+        <StoreFields d={s} withImages passwordLabel="New owner password (leave empty to keep the current one)" />
         <SubmitButton label="Save changes" />
       </form>
       <form action={ownerLogout} style={{ marginTop: 12 }}>
@@ -54,4 +54,4 @@ export default async function EditPage({ params, searchParams }) {
       <p style={{ marginTop: 16 }}><a href={`/s/${s.slug}`}>Back to store</a></p>
     </>
   );
-          }
+  }
