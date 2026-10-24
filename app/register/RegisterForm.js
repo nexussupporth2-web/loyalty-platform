@@ -16,4 +16,4 @@ export default function RegisterForm({ error }) {
       </form>
     </>
   );
-}
+            }
