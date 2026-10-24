@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { headers } from 'next/headers';
 import { admin } from '../../../lib/supabase';
+import { getOwnerSession } from '../../../lib/session';
 import { mapHref } from '../../../lib/links';
 import SocialLinks from '../../../components/SocialLinks';
 import StoreGallery from '../../../components/StoreGallery';
@@ -13,6 +14,7 @@ export default async function StorePage({ params, searchParams }) {
     .from('stores').select('*').eq('slug', params.slug).eq('status', 'active').maybeSingle();
   if (!s) notFound();
 
+  const isOwner = (await getOwnerSession()) === s.id;
   const url = `https://${headers().get('host')}/s/${s.slug}`;
 
   return (
@@ -40,6 +42,19 @@ export default async function StorePage({ params, searchParams }) {
         </a>
       </div>
 
+      {isOwner && (
+        <div style={{ display: 'flex', gap: 8, margin: '8px 0 4px' }}>
+          <a className="btn" href={`/s/${s.slug}/ledger`} style={{ flex: 1 }}>Customer ledger</a>
+          <a
+            className="btn"
+            href={`/s/${s.slug}/edit`}
+            style={{ flex: 1, background: 'transparent', color: 'var(--tx)', border: '1px solid var(--bd)' }}
+          >
+            Edit store
+          </a>
+        </div>
+      )}
+
       <StoreGallery images={s.store_images} />
       {s.business_details && <p>{s.business_details}</p>}
 
@@ -58,4 +73,4 @@ export default async function StorePage({ params, searchParams }) {
       <StandeeSection store={s} url={url} />
     </>
   );
-          }
+    }
