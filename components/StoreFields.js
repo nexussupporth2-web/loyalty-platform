@@ -27,6 +27,20 @@ export default function StoreFields({
 
       {withImages && (
         <>
+          <label htmlFor="redeem_rules">Redemption slabs shown on the back of the customer card (one per line, up to 6)</label>
+          <textarea
+            id="redeem_rules"
+            name="redeem_rules"
+            rows={6}
+            maxLength={500}
+            defaultValue={v('redeem_rules')}
+            placeholder={'100 points = 10 off\n500 points = 20 off\n1000 points = 40 off\n2000 points = free gift\n5000 points = Dineout coupon'}
+          />
+        </>
+      )}
+
+      {withImages && (
+        <>
           <h2>Store images (up to 5)</h2>
           <p className="sub">They scroll across your store page. Untick a photo to remove it.</p>
           {images.length > 0 && (
@@ -64,4 +78,4 @@ export default function StoreFields({
       <input id="password" name="password" type="password" minLength={6} required={passwordRequired} autoComplete="new-password" />
     </>
   );
-                                                                                             }
+                                                                                  }
