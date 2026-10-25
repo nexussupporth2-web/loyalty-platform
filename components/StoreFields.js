@@ -10,6 +10,8 @@ export default function StoreFields({
     <>
       <label htmlFor="business_name">Business name *</label>
       <input id="business_name" name="business_name" required maxLength={80} defaultValue={v('business_name')} />
+      <label htmlFor="slogan">Slogan (a short line shown under your logo)</label>
+      <input id="slogan" name="slogan" maxLength={120} defaultValue={v('slogan')} />
       <label htmlFor="logo">{logoRequired ? 'Logo *' : 'Logo (leave empty to keep the current one)'}</label>
       <LogoInput required={logoRequired} />
       <label htmlFor="contact_person">Contact person *</label>
@@ -50,6 +52,8 @@ export default function StoreFields({
       <input id="instagram" name="instagram" maxLength={60} defaultValue={v('instagram')} />
       <label htmlFor="facebook">Facebook page name</label>
       <input id="facebook" name="facebook" maxLength={80} defaultValue={v('facebook')} />
+      <label htmlFor="youtube">YouTube (a handle like @name, or your channel link)</label>
+      <input id="youtube" name="youtube" maxLength={300} defaultValue={v('youtube')} />
       <label htmlFor="review_url">Link to Google reviews (starts with https://)</label>
       <input id="review_url" name="review_url" type="url" maxLength={500} defaultValue={v('review_url')} />
       <label htmlFor="google_place_id">Google Place ID (used if you have no reviews link)</label>
@@ -60,4 +64,4 @@ export default function StoreFields({
       <input id="password" name="password" type="password" minLength={6} required={passwordRequired} autoComplete="new-password" />
     </>
   );
-    }
+                                                                                             }
