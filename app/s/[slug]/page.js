@@ -29,19 +29,6 @@ export default async function StorePage({ params, searchParams }) {
 
       <StoreHeader store={s} />
 
-      {isOwner && (
-        <div style={{ display: 'flex', gap: 8, margin: '8px 0 4px' }}>
-          <a className="btn" href={`/s/${s.slug}/ledger`} style={{ flex: 1 }}>Customer ledger</a>
-          <a
-            className="btn"
-            href={`/s/${s.slug}/edit`}
-            style={{ flex: 1, background: 'transparent', color: 'var(--tx)', border: '1px solid var(--bd)' }}
-          >
-            Edit store
-          </a>
-        </div>
-      )}
-
       <StoreGallery images={s.store_images} />
       {s.business_details && <p>{s.business_details}</p>}
 
@@ -54,8 +41,12 @@ export default async function StorePage({ params, searchParams }) {
       <p>{s.contact_person}<br /><a href={`tel:${s.contact_number.replace(/[^+\d]/g, '')}`}>{s.contact_number}</a></p>
       <p>{s.address}<br /><a href={mapHref(s)} target="_blank" rel="noopener noreferrer">Open in maps</a></p>
 
+      {isOwner && (
+        <a className="btn" href={`/s/${s.slug}/ledger`} style={{ marginTop: 24 }}>Customer ledger</a>
+      )}
+
       <h2>QR standee</h2>
       <StandeeSection store={s} url={url} />
     </>
   );
-          }
+}
