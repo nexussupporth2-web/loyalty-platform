@@ -5,7 +5,9 @@ import { buildLedger } from '../../../../lib/ledger';
 import { earnedFor } from '../../../../lib/points';
 import Statement from '../../../../components/Statement';
 import SubmitButton from '../../../../components/SubmitButton';
+import ConfirmButton from '../../../../components/ConfirmButton';
 import { approveEntry, rejectEntry, redeemPoints, deleteCustomer } from './actions';
+import { deleteCustomers } from './bulk';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,6 +19,8 @@ const CHIP = {
 };
 const box = { border: '1px solid var(--bd)', background: 'var(--card)', borderRadius: 14, padding: 12, marginTop: 10, display: 'grid', gap: 4 };
 const ghost = { background: 'transparent', color: 'var(--tx)', border: '1px solid var(--bd)' };
+const th = { padding: '10px 8px', fontWeight: 700, fontSize: 12, textAlign: 'left', color: 'var(--tx2)' };
+const td = { padding: '10px 8px', borderTop: '1px solid var(--bd)' };
 
 async function signedMap(db, entries) {
   const paths = entries.map((e) => e.bill_path).filter(Boolean);
@@ -78,6 +82,7 @@ export default async function LedgerPage({ params, searchParams }) {
   if ((await getOwnerSession()) !== s.id) redirect(`/s/${s.slug}/edit`);
 
   const q = (searchParams.q || '').toString().replace(/\D/g, '').slice(0, 6);
+  const sort = ['new', 'az', 'points'].includes(searchParams.sort) ? searchParams.sort : 'new';
   let content = null;
 
   if (q.length === 6) {
@@ -137,23 +142,103 @@ export default async function LedgerPage({ params, searchParams }) {
       }
     }
   } else {
+    // All registered customers
+    const { data: mems } = await db.from('memberships').select('id,member_no,customer_id,created_at').eq('store_id', s.id);
+    const cids = [...new Set((mems || []).map((m) => m.customer_id))];
+    const { data: cs } = cids.length
+      ? await db.from('customers').select('id,name').in('id', cids)
+      : { data: [] };
+    const names = Object.fromEntries((cs || []).map((c) => [c.id, c.name]));
+    const { data: ev } = await db.from('entries').select('membership_id,points').eq('store_id', s.id).eq('status', 'verified');
+    const { data: rv } = await db.from('redemptions').select('membership_id,points').eq('store_id', s.id);
+    const avail = {};
+    (ev || []).forEach((e) => { avail[e.membership_id] = (avail[e.membership_id] || 0) + e.points; });
+    (rv || []).forEach((r) => { avail[r.membership_id] = (avail[r.membership_id] || 0) - r.points; });
+
+    const people = (mems || []).map((m) => ({
+      id: m.id,
+      name: names[m.customer_id] || 'Customer',
+      last6: m.member_no.slice(-6),
+      created: m.created_at,
+      points: avail[m.id] || 0,
+    }));
+    if (sort === 'az') people.sort((a, b) => a.name.localeCompare(b.name));
+    else if (sort === 'points') people.sort((a, b) => b.points - a.points);
+    else people.sort((a, b) => new Date(b.created) - new Date(a.created));
+
+    // Entries waiting for a check
     const { data: pend } = await db.from('entries').select('*')
       .eq('store_id', s.id).eq('status', 'pending').order('created_at', { ascending: true }).limit(50);
     const list = pend || [];
     let who = {};
     if (list.length) {
       const mids = [...new Set(list.map((e) => e.membership_id))];
-      const { data: ms } = await db.from('memberships').select('id,member_no,customer_id').in('id', mids);
-      const cids = [...new Set((ms || []).map((m) => m.customer_id))];
-      const { data: cs } = await db.from('customers').select('id,name').in('id', cids);
-      const names = Object.fromEntries((cs || []).map((c) => [c.id, c.name]));
+      const { data: pm } = await db.from('memberships').select('id,member_no,customer_id').in('id', mids);
+      const pcids = [...new Set((pm || []).map((m) => m.customer_id))];
+      const { data: pc } = await db.from('customers').select('id,name').in('id', pcids);
+      const pn = Object.fromEntries((pc || []).map((c) => [c.id, c.name]));
       who = Object.fromEntries(
-        (ms || []).map((m) => [m.id, `${names[m.customer_id] || 'Customer'} · card ending ${m.member_no.slice(-6)}`])
+        (pm || []).map((m) => [m.id, `${pn[m.customer_id] || 'Customer'} · card ending ${m.member_no.slice(-6)}`])
       );
     }
     const urls = await signedMap(db, list);
+
     content = (
       <>
+        <h2>Registered customers ({people.length})</h2>
+        <form method="get" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <select name="sort" defaultValue={sort} aria-label="Sort customers" style={{ flex: 1 }}>
+            <option value="new">Newly first</option>
+            <option value="az">Alphabetical</option>
+            <option value="points">As per points status</option>
+          </select>
+          <button className="btn" type="submit" style={{ width: 'auto', padding: '12px 18px' }}>Sort</button>
+        </form>
+
+        {people.length === 0 ? (
+          <p className="sub">No customers yet.</p>
+        ) : (
+          <form action={deleteCustomers} style={{ marginTop: 12 }}>
+            <input type="hidden" name="slug" value={s.slug} />
+            <input type="hidden" name="sort" value={sort} />
+            <div style={{ border: '1px solid var(--bd)', background: 'var(--card)', borderRadius: 14, overflow: 'hidden' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+                <thead>
+                  <tr>
+                    <th style={{ ...th, width: 36 }} />
+                    <th style={th}>Name</th>
+                    <th style={th}>Card (last 6)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {people.map((p) => (
+                    <tr key={p.id}>
+                      <td style={td}>
+                        <input
+                          type="checkbox"
+                          name="ids"
+                          value={p.id}
+                          aria-label={`Select ${p.name}`}
+                          style={{ width: 20, height: 20, padding: 0, margin: 0, display: 'block' }}
+                        />
+                      </td>
+                      <td style={{ ...td, fontWeight: 600 }}>{p.name}</td>
+                      <td style={{ ...td, fontFamily: 'ui-monospace, Menlo, monospace', letterSpacing: 1 }}>{p.last6}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div style={{ marginTop: 12 }}>
+              <ConfirmButton
+                label="Delete selected"
+                message="Delete the selected customers and all their entries? This cannot be undone."
+                style={{ background: '#F7D7D1', color: '#8A3A32', boxShadow: 'none' }}
+              />
+            </div>
+          </form>
+        )}
+
         <h2>Waiting for your check ({list.length})</h2>
         {list.length === 0 && <p className="sub">Nothing is waiting. New entries appear here.</p>}
         {list.map((e) => (
