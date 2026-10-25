@@ -78,4 +78,4 @@ export default function StoreFields({
       <input id="password" name="password" type="password" minLength={6} required={passwordRequired} autoComplete="new-password" />
     </>
   );
-                                                                                  }
+                                                                                             }
