@@ -4,7 +4,7 @@ import { getSession } from '../../../../lib/session';
 import { tierFor } from '../../../../lib/points';
 import { logout } from '../join/actions';
 import { addEntry } from './actions';
-import LoyaltyCard from '../../../../components/LoyaltyCard';
+import FlipCard from '../../../../components/FlipCard';
 import SocialLinks from '../../../../components/SocialLinks';
 import SubmitButton from '../../../../components/SubmitButton';
 import BillInput from '../../../../components/BillInput';
@@ -74,12 +74,13 @@ export default async function CardPage({ params, searchParams }) {
       <h1>Welcome, {c.name}</h1>
       <p className="sub">Your {s.business_name} loyalty card</p>
       <div style={{ margin: '16px 0' }}>
-        <LoyaltyCard
+        <FlipCard
           name={s.business_name}
           logo={s.logo_url}
           member={c.name.toUpperCase()}
           number={number}
           tier={tierFor(earned)}
+          rules={s.redeem_rules}
         />
       </div>
 
@@ -122,4 +123,4 @@ export default async function CardPage({ params, searchParams }) {
       </form>
     </>
   );
-            }
+}
