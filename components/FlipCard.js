@@ -73,4 +73,4 @@ export default function FlipCard({ name, logo, member, number, tier, rules }) {
       </button>
     </>
   );
-            }
+}
