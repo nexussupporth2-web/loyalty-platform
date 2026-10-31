@@ -1,28 +1,52 @@
 import { socialLinks } from '../lib/links';
 
-const ICONS = {
-  whatsapp: [
-    'M3 21l1.65 -3.8a9 9 0 1 1 3.4 2.9l-5.05 .9',
-    'M9 10a.5 .5 0 0 0 1 0v-1a.5 .5 0 0 0 -1 0v1a5 5 0 0 0 5 5h1a.5 .5 0 0 0 0 -1h-1a.5 .5 0 0 0 0 1',
-  ],
-  instagram: [
-    'M4 8a4 4 0 0 1 4 -4h8a4 4 0 0 1 4 4v8a4 4 0 0 1 -4 4h-8a4 4 0 0 1 -4 -4z',
-    'M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0',
-    'M16.5 7.5v.01',
-  ],
-  facebook: ['M7 10v4h3v7h4v-7h3l1 -4h-4v-2a1 1 0 0 1 1 -1h3v-4h-3a5 5 0 0 0 -5 5v2h-3'],
-  youtube: [
-    'M2 8a4 4 0 0 1 4 -4h12a4 4 0 0 1 4 4v8a4 4 0 0 1 -4 4h-12a4 4 0 0 1 -4 -4v-8z',
-    'M10 9l5 3l-5 3z',
-  ],
-};
-
-// Soft pastel circle + darker icon colour for each network.
-const TINT = {
-  whatsapp: ['#CDE8DF', '#2F6B5A'],
-  instagram: ['#F7D7D1', '#A5493F'],
-  facebook: ['#C9D8EC', '#34508A'],
-  youtube: ['#F8D9C8', '#B04632'],
+// Original brand logos: no circle behind them, each in its own colour.
+const BRAND = {
+  whatsapp: (
+    <>
+      <path d="M3 21l1.65 -3.8a9 9 0 1 1 3.4 2.9l-5.05 .9z" fill="#25D366" />
+      <path
+        d="M9 10a.5 .5 0 0 0 1 0v-1a.5 .5 0 0 0 -1 0v1a5 5 0 0 0 5 5h1a.5 .5 0 0 0 0 -1h-1a.5 .5 0 0 0 0 1"
+        fill="none"
+        stroke="#fff"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </>
+  ),
+  instagram: (
+    <>
+      <defs>
+        <linearGradient id="igGrad" x1="0" y1="1" x2="1" y2="0">
+          <stop offset="0" stopColor="#FEDA75" />
+          <stop offset="0.3" stopColor="#FA7E1E" />
+          <stop offset="0.55" stopColor="#D62976" />
+          <stop offset="0.8" stopColor="#962FBF" />
+          <stop offset="1" stopColor="#4F5BD5" />
+        </linearGradient>
+      </defs>
+      <rect x="2" y="2" width="20" height="20" rx="6" fill="url(#igGrad)" />
+      <rect x="6" y="6" width="12" height="12" rx="3.6" fill="none" stroke="#fff" strokeWidth="1.7" />
+      <circle cx="12" cy="12" r="2.8" fill="none" stroke="#fff" strokeWidth="1.7" />
+      <circle cx="16" cy="8" r="0.9" fill="#fff" />
+    </>
+  ),
+  facebook: (
+    <>
+      <circle cx="12" cy="12" r="10.5" fill="#1877F2" />
+      <path
+        d="M13.4 21v-7.6h2.6l.4-3h-3V8.5c0-.9.3-1.4 1.5-1.4h1.6V4.4c-.3 0-1.2-.1-2.3-.1-2.3 0-3.8 1.4-3.8 3.9v2.2H7.8v3h2.6V21h3z"
+        fill="#fff"
+      />
+    </>
+  ),
+  youtube: (
+    <>
+      <rect x="1.5" y="4.5" width="21" height="15" rx="4.5" fill="#FF0000" />
+      <path d="M10 9l5 3l-5 3z" fill="#fff" />
+    </>
+  ),
 };
 
 const GEAR = [
@@ -30,7 +54,7 @@ const GEAR = [
   'M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0',
 ];
 
-function Svg({ paths, size }) {
+function Gear({ size }) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -42,7 +66,7 @@ function Svg({ paths, size }) {
       strokeLinejoin="round"
       aria-hidden="true"
     >
-      {paths.map((d, i) => <path key={i} d={d} />)}
+      {GEAR.map((d, i) => <path key={i} d={d} />)}
     </svg>
   );
 }
@@ -62,7 +86,8 @@ export default function StoreHeader({ store: s }) {
         .sh-name{font-size:20px;font-weight:800;text-transform:uppercase;line-height:1.15;margin:12px 0 0;word-break:break-word}
         .sh-gear{align-self:flex-end;color:var(--tx2);padding:4px;display:flex}
         .sh-icons{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-        .sh-icons a{aspect-ratio:1;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow)}
+        .sh-icons a{aspect-ratio:1;display:flex;align-items:center;justify-content:center}
+        .sh-icons svg{width:82%;height:82%;display:block}
         .sh-review{display:block;text-align:center;background:var(--card);border:1.5px solid var(--bd);border-radius:16px;padding:10px 8px;font-weight:800;font-size:14px;text-decoration:none;color:var(--tx);box-shadow:var(--shadow)}
         .sh-slogan{text-align:center;font-size:18px;font-weight:700;line-height:1.35;margin:24px 8px 8px}
       `}</style>
@@ -75,7 +100,7 @@ export default function StoreHeader({ store: s }) {
 
         <div className="sh-right">
           <a className="sh-gear" href={`/s/${s.slug}/edit`} aria-label="Store settings">
-            <Svg paths={GEAR} size={28} />
+            <Gear size={28} />
           </a>
           {icons.length > 0 && (
             <div className="sh-icons">
@@ -86,9 +111,8 @@ export default function StoreHeader({ store: s }) {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={i.label}
-                  style={{ background: TINT[i.key][0], color: TINT[i.key][1] }}
                 >
-                  <Svg paths={ICONS[i.key]} size="46%" />
+                  <svg viewBox="0 0 24 24" aria-hidden="true">{BRAND[i.key]}</svg>
                 </a>
               ))}
             </div>
@@ -104,4 +128,4 @@ export default function StoreHeader({ store: s }) {
       {s.slogan && <p className="sh-slogan">{s.slogan}</p>}
     </>
   );
-        }
+}
