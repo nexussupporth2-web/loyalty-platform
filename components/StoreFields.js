@@ -64,7 +64,7 @@ export default function StoreFields({
       <input id="whatsapp" name="whatsapp" type="tel" defaultValue={v('whatsapp')} />
       <label htmlFor="instagram">Instagram ID (without @)</label>
       <input id="instagram" name="instagram" maxLength={60} defaultValue={v('instagram')} />
-      <label htmlFor="facebook">Facebook page name</label>
+      <label htmlFor="facebook">Facebook (page name or full link)</label>
       <input id="facebook" name="facebook" maxLength={80} defaultValue={v('facebook')} />
       <label htmlFor="youtube">YouTube (a handle like @name, or your channel link)</label>
       <input id="youtube" name="youtube" maxLength={300} defaultValue={v('youtube')} />
