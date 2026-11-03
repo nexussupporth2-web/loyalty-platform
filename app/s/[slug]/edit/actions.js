@@ -13,11 +13,15 @@ const slugOf = (fd) => (fd.get('slug') || '').toString();
 
 export async function ownerLogin(fd) {
   const slug = slugOf(fd);
+  const manager = (fd.get('next') || '').toString() === 'manager';
   const pw = (fd.get('password') || '').toString();
   const { data: s } = await admin().from('stores').select('id,owner_hash').eq('slug', slug).maybeSingle();
-  if (!s || !s.owner_hash || !(await bcrypt.compare(pw, s.owner_hash))) back(slug, 'Wrong password.');
+  if (!s || !s.owner_hash || !(await bcrypt.compare(pw, s.owner_hash))) {
+    const msg = encodeURIComponent('Wrong password.');
+    redirect(manager ? `/s/${slug}?manager=1&error=${msg}` : `/s/${slug}/edit?error=${msg}`);
+  }
   await setOwnerSession(s.id);
-  redirect(`/s/${slug}/edit`);
+  redirect(manager ? `/s/${slug}?manager=1` : `/s/${slug}/edit`);
 }
 
 export async function ownerLogout(fd) {
@@ -59,5 +63,5 @@ export async function saveStore(fd) {
 
   const r = await db.from('stores').update(update).eq('id', s.id);
   if (r.error) back(slug, 'Could not save. Please try again.');
-  redirect(`/s/${slug}?saved=1`);
+  redirect(`/s/${slug}?manager=1&saved=1`);
 }
