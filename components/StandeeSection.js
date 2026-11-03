@@ -3,7 +3,8 @@ import { socialLinks } from '../lib/links';
 import PrintButton from './PrintButton';
 import StandeeDownload from './StandeeDownload';
 
-export default async function StandeeSection({ store: s, url }) {
+// showActions = false shows the standee only (no Download / Print buttons).
+export default async function StandeeSection({ store: s, url, showActions = true }) {
   const qr = await QRCode.toDataURL(url, { width: 700, margin: 1, errorCorrectionLevel: 'H' });
   const links = socialLinks(s);
   const review = links.find((l) => l.key === 'review');
@@ -42,18 +43,20 @@ export default async function StandeeSection({ store: s, url }) {
           )}
         </div>
       </div>
-      <div className="noprint" style={{ marginTop: 16, display: 'grid', gap: 8, maxWidth: 340, marginInline: 'auto' }}>
-        <StandeeDownload
-          name={s.business_name}
-          slug={s.slug}
-          logo={s.logo_url}
-          url={url}
-          qr={qr}
-          reviewQr={reviewQr}
-          follow={follow}
-        />
-        <PrintButton />
-      </div>
+      {showActions && (
+        <div className="noprint" style={{ marginTop: 16, display: 'grid', gap: 8, maxWidth: 340, marginInline: 'auto' }}>
+          <StandeeDownload
+            name={s.business_name}
+            slug={s.slug}
+            logo={s.logo_url}
+            url={url}
+            qr={qr}
+            reviewQr={reviewQr}
+            follow={follow}
+          />
+          <PrintButton />
+        </div>
+      )}
     </>
   );
-    }
+}
