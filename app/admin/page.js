@@ -15,8 +15,10 @@ export default async function AdminPage({ searchParams }) {
         <h1>Main admin</h1>
         {err}
         <form action={adminLogin}>
+          <label htmlFor="admin_id">Admin ID</label>
+          <input id="admin_id" name="admin_id" required autoComplete="username" />
           <label htmlFor="password">Admin password</label>
-          <input id="password" name="password" type="password" required />
+          <input id="password" name="password" type="password" required autoComplete="current-password" />
           <SubmitButton label="Log in" busyLabel="Checking…" />
         </form>
       </>
@@ -35,6 +37,7 @@ export default async function AdminPage({ searchParams }) {
     <>
       <h1>Main admin</h1>
       <p className="sub">{(stores || []).length} stores</p>
+      <a className="btn" href="/register" style={{ margin: '12px 0' }}>Register a new store</a>
       {err}
       {msg}
       {(stores || []).map((s) => (
@@ -65,4 +68,4 @@ export default async function AdminPage({ searchParams }) {
       </form>
     </>
   );
-    }
+}

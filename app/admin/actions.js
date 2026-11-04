@@ -13,10 +13,14 @@ const same = (a, b) => {
 const go = (kind, text) => redirect(`/admin?${kind}=${encodeURIComponent(text)}`);
 
 export async function adminLogin(fd) {
+  const id = (fd.get('admin_id') || '').toString().trim();
   const pw = (fd.get('password') || '').toString();
-  const real = process.env.ADMIN_PASSWORD || '';
-  if (!real) go('error', 'ADMIN_PASSWORD is not set in Vercel yet.');
-  if (!same(pw, real)) go('error', 'Wrong password.');
+  const realId = process.env.ADMIN_ID || '';
+  const realPw = process.env.ADMIN_PASSWORD || '';
+  if (!realId || !realPw) go('error', 'ADMIN_ID and ADMIN_PASSWORD are not set in Vercel yet.');
+  const okId = same(id, realId);
+  const okPw = same(pw, realPw);
+  if (!(okId && okPw)) go('error', 'Wrong ID or password.');
   await setAdminSession();
   redirect('/admin');
 }
@@ -53,4 +57,4 @@ export async function deleteStore(fd) {
   if (orphans.length) await db.from('customers').delete().in('id', orphans);
 
   go('msg', `Deleted ${s.business_name}.`);
-    }
+}
