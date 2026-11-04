@@ -3,7 +3,7 @@
 import bcrypt from 'bcryptjs';
 import { redirect } from 'next/navigation';
 import { admin } from '../../lib/supabase';
-import { setOwnerSession } from '../../lib/session';
+import { setOwnerSession, isAdmin } from '../../lib/session';
 import { readStoreForm, checkStoreForm, uploadLogo, socialColumns } from '../../lib/storeForm';
 
 const slugify = (s) =>
@@ -11,6 +11,9 @@ const slugify = (s) =>
     .replace(/[\s_]+/g, '-').replace(/-+/g, '-').slice(0, 40) || 'store';
 
 export async function createStore(formData) {
+  // Only the main admin can register stores.
+  if (!(await isAdmin())) redirect('/admin');
+
   const x = readStoreForm(formData);
   const fail = (m) => redirect('/register?error=' + encodeURIComponent(m)); // redirect() throws, so code below never runs
 
