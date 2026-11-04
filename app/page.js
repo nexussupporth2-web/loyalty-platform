@@ -23,7 +23,9 @@ export default async function Home({ searchParams }) {
       <div style={{ margin: '20px 0' }}>
         <LoyaltyCard name="Your Shop Name" />
       </div>
-      <Link className="btn" href="/register">Register your store</Link>
+
+      {/* Only the main admin sees the Register button */}
+      {isMain && <Link className="btn" href="/register">Register your store</Link>}
 
       {isMain && searchParams?.msg && <div className="msg ok">{searchParams.msg}</div>}
 
