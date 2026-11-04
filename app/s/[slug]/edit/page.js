@@ -38,7 +38,6 @@ export default async function EditPage({ params, searchParams }) {
   return (
     <>
       <h1>Edit store details</h1>
-      <p className="sub">Your store link stays the same: /s/{s.slug}</p>
       <a className="btn" href={`/s/${s.slug}/ledger`} style={{ margin: '12px 0' }}>Open customer ledger</a>
       {err}
       <form action={saveStore}>
