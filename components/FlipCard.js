@@ -10,7 +10,7 @@ const TAGS = [
 
 export default function FlipCard({ name, logo, member, number, tier, rules }) {
   const [back, setBack] = useState(false);
-  const slabs = (rules || '').split('\n').map((l) => l.trim()).filter(Boolean);
+  const slabs = (rules || '').split('\n').map((l) => l.trim()).filter(Boolean).slice(0, 6);
   const face = { position: 'absolute', inset: 0, backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' };
 
   return (
@@ -34,15 +34,32 @@ export default function FlipCard({ name, logo, member, number, tier, rules }) {
 
           <div style={{ ...face, transform: 'rotateY(180deg)' }}>
             <div className="lc" data-t={tier} style={{ height: '100%' }}>
-              <div className="in">
-                <div>
-                  <div className="sm" style={{ fontWeight: 700 }}>Redeem points</div>
-                  <div style={{ marginTop: 4, fontSize: 12, lineHeight: 1.3, maxHeight: 96, overflowY: 'auto' }}>
-                    {slabs.length
-                      ? slabs.map((l, i) => <div key={i}>{l}</div>)
-                      : 'Ask the store how to redeem your points.'}
-                  </div>
+              <div className="in" style={{ gap: 4 }}>
+                <div className="sm" style={{ fontWeight: 700 }}>Redeem points</div>
+
+                {/* All 6 slab lines are shown here, spread over the free space (one line each, no scrolling) */}
+                <div
+                  style={{
+                    flex: 1,
+                    minHeight: 0,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-evenly',
+                    fontSize: 12.5,
+                    lineHeight: 1.25,
+                  }}
+                >
+                  {slabs.length ? (
+                    slabs.map((l, i) => (
+                      <div key={i} style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {l}
+                      </div>
+                    ))
+                  ) : (
+                    <div>Ask the store how to redeem your points.</div>
+                  )}
                 </div>
+
                 <div>
                   <div className="sm" style={{ fontWeight: 700, marginBottom: 4 }}>Eligibility colours</div>
                   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
