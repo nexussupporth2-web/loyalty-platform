@@ -33,7 +33,7 @@ function wrapLines(ctx, text, maxW) {
   return lines;
 }
 
-export default function StandeeDownload({ name, slug, logo, url, qr, reviewQr, follow }) {
+export default function StandeeDownload({ name, slug, logo, url, qr, slabs = [] }) {
   const [busy, setBusy] = useState(false);
 
   async function download() {
@@ -75,31 +75,13 @@ export default function StandeeDownload({ name, slug, logo, url, qr, reviewQr, f
 
       const q = await load(qr);
       if (q) ctx.drawImage(q, W / 2 - 300, y, 600, 600);
-      y += 660;
-      ctx.fillStyle = '#555';
-      fit(ctx, url, W - 120, 34);
-      ctx.fillText(url, W / 2, y);
-
-      const by = 1330;
-      if (follow.length) {
-        ctx.textAlign = 'left';
-        ctx.fillStyle = '#111';
-        ctx.font = 'bold 44px sans-serif';
-        ctx.fillText('Follow us', 100, by + 40);
-        ctx.fillStyle = '#333';
-        follow.forEach((t, i) => {
-          fit(ctx, t, 700, 36);
-          ctx.fillText(t, 100, by + 110 + i * 60);
-        });
-      }
-      if (reviewQr) {
-        const rq = await load(reviewQr);
-        if (rq) ctx.drawImage(rq, W - 400, by, 300, 300);
-        ctx.textAlign = 'center';
-        ctx.fillStyle = '#111';
-        ctx.font = 'bold 32px sans-serif';
-        ctx.fillText('Review us on Google', W - 250, by + 350);
-      }
+      y += 700;
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#111';
+      slabs.slice(0, 6).forEach((line, i) => {
+        fit(ctx, line, W - 200, 44, 'bold');
+        ctx.fillText(line, W / 2, y + i * 76);
+      });
 
       await new Promise((res) =>
         c.toBlob((b) => {

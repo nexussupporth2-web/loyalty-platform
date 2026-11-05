@@ -1,15 +1,11 @@
 import QRCode from 'qrcode';
-import { socialLinks } from '../lib/links';
 import PrintButton from './PrintButton';
 import StandeeDownload from './StandeeDownload';
 
 // showActions = false shows the standee only (no Download / Print buttons).
 export default async function StandeeSection({ store: s, url, showActions = true }) {
   const qr = await QRCode.toDataURL(url, { width: 700, margin: 1, errorCorrectionLevel: 'H' });
-  const links = socialLinks(s);
-  const review = links.find((l) => l.key === 'review');
-  const reviewQr = review ? await QRCode.toDataURL(review.href, { width: 400, margin: 1 }) : null;
-  const follow = links.filter((l) => l.key !== 'review').map((l) => `${l.label}: ${l.text}`);
+  const slabs = (s.redeem_rules || '').split(/\r?\n/).map((l) => l.trim()).filter(Boolean).slice(0, 6);
 
   return (
     <>
@@ -28,19 +24,9 @@ export default async function StandeeSection({ store: s, url, showActions = true
         </div>
         <div>
           <img src={qr} alt={`QR code to join ${s.business_name}`} style={{ width: '100%', maxWidth: 200 }} />
-          <p style={{ fontSize: 10, color: '#555', wordBreak: 'break-all', margin: '4px 0 0' }}>{url}</p>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, textAlign: 'left' }}>
-          <div>
-            {follow.length > 0 && <strong style={{ fontSize: 13 }}>Follow us</strong>}
-            {follow.map((t) => <div key={t} style={{ fontSize: 11 }}>{t}</div>)}
-          </div>
-          {reviewQr && (
-            <div style={{ textAlign: 'center' }}>
-              <img src={reviewQr} alt="QR code for Google reviews" style={{ width: 70 }} />
-              <div style={{ fontSize: 10, fontWeight: 600 }}>Review us on Google</div>
-            </div>
-          )}
+        <div style={{ textAlign: 'center', fontWeight: 700 }}>
+          {slabs.map((l, i) => <div key={i} style={{ fontSize: 13, lineHeight: 1.5 }}>{l}</div>)}
         </div>
       </div>
       {showActions && (
@@ -51,8 +37,7 @@ export default async function StandeeSection({ store: s, url, showActions = true
             logo={s.logo_url}
             url={url}
             qr={qr}
-            reviewQr={reviewQr}
-            follow={follow}
+            slabs={slabs}
           />
           <PrintButton />
         </div>
