@@ -1,4 +1,4 @@
-import { socialLinks } from '../lib/links';
+import { socialLinks, mapHref } from '../lib/links';
 
 // Original brand logos. Each one fills the same 1:1 square, with no circle or background behind it.
 const BRAND = {
@@ -80,9 +80,10 @@ export default function StoreHeader({ store: s, gearHref }) {
   return (
     <>
       <style>{`
-        .sh{display:flex;gap:16px;align-items:flex-start}
-        .sh-left,.sh-right{flex:1 1 0;min-width:0}
-        .sh-right{display:flex;flex-direction:column;gap:10px}
+        .sh{display:flex;gap:16px;align-items:stretch}
+        .sh-left,.sh-right{flex:1 1 0;min-width:0;display:flex;flex-direction:column}
+        .sh-right{gap:10px}
+        .sh-bottom{margin-top:auto}
         .sh-logo{width:75%;aspect-ratio:1;border-radius:50%;object-fit:cover;background:#fff;border:4px solid #fff;box-shadow:var(--shadow);display:block}
         .sh-name{font-size:20px;font-weight:800;text-transform:uppercase;line-height:1.15;margin:12px 0 0;word-break:break-word}
         .sh-gear{align-self:flex-end;color:var(--tx2);padding:4px;display:flex}
@@ -97,6 +98,11 @@ export default function StoreHeader({ store: s, gearHref }) {
         <div className="sh-left">
           <img className="sh-logo" src={s.logo_url} alt={`${s.business_name} logo`} />
           <h1 className="sh-name">{s.business_name}</h1>
+          <div className="sh-bottom" style={{ paddingTop: 10 }}>
+            <a className="sh-review" href={mapHref(s)} target="_blank" rel="noopener noreferrer">
+              Google Location
+            </a>
+          </div>
         </div>
 
         <div className="sh-right">
@@ -119,7 +125,7 @@ export default function StoreHeader({ store: s, gearHref }) {
             </div>
           )}
           {review && (
-            <a className="sh-review" href={review.href} target="_blank" rel="noopener noreferrer">
+            <a className="sh-review sh-bottom" href={review.href} target="_blank" rel="noopener noreferrer">
               <span style={{ color: '#E3A93B' }}>★</span> Google reviews
             </a>
           )}
