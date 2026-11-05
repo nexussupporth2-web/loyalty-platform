@@ -83,10 +83,10 @@ export default function StoreHeader({ store: s, gearHref }) {
         .sh{display:flex;gap:16px;align-items:flex-start}
         .sh-left,.sh-right{flex:1 1 0;min-width:0}
         .sh-right{display:flex;flex-direction:column;gap:10px}
-        .sh-logo{width:100%;aspect-ratio:1;border-radius:50%;object-fit:cover;background:#fff;border:4px solid #fff;box-shadow:var(--shadow);display:block}
+        .sh-logo{width:75%;aspect-ratio:1;border-radius:50%;object-fit:cover;background:#fff;border:4px solid #fff;box-shadow:var(--shadow);display:block}
         .sh-name{font-size:20px;font-weight:800;text-transform:uppercase;line-height:1.15;margin:12px 0 0;word-break:break-word}
         .sh-gear{align-self:flex-end;color:var(--tx2);padding:4px;display:flex}
-        .sh-icons{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+        .sh-icons{width:75%;display:grid;grid-template-columns:1fr 1fr;gap:10px}
         .sh-icons a{display:block;aspect-ratio:1/1}
         .sh-icons svg{width:100%;height:100%;display:block}
         .sh-review{display:block;text-align:center;background:var(--card);border:1.5px solid var(--bd);border-radius:16px;padding:10px 8px;font-weight:800;font-size:14px;text-decoration:none;color:var(--tx);box-shadow:var(--shadow)}
