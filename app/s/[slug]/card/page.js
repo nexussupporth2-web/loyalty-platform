@@ -5,7 +5,7 @@ import { tierFor } from '../../../../lib/points';
 import { logout } from '../join/actions';
 import { addEntry } from './actions';
 import FlipCard from '../../../../components/FlipCard';
-import SocialLinks from '../../../../components/SocialLinks';
+import CardLinks from '../../../../components/CardLinks';
 import SubmitButton from '../../../../components/SubmitButton';
 import BillInput from '../../../../components/BillInput';
 import Statement from '../../../../components/Statement';
@@ -85,6 +85,7 @@ export default async function CardPage({ params, searchParams }) {
       {/* 1. Welcome */}
       <h1>Welcome, {c.name}</h1>
       <p className="sub">Your {s.business_name} loyalty card</p>
+      <CardLinks store={s} />
 
       {/* 2. Card */}
       <div style={{ margin: '16px 0' }}>
@@ -152,8 +153,6 @@ export default async function CardPage({ params, searchParams }) {
         );
       })}
 
-      <SocialLinks store={s} />
-      <p style={{ marginTop: 24 }}><a href={`/s/${s.slug}`}>Back to {s.business_name}</a></p>
       <form action={logout}>
         <input type="hidden" name="slug" value={s.slug} />
         <button className="btn" type="submit" style={{ background: 'transparent', color: 'var(--tx)', border: '1px solid var(--bd)' }}>
