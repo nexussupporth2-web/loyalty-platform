@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { admin } from '../../../../lib/supabase';
-import { getOwnerSession } from '../../../../lib/session';
+import { getOwnerSession, isAdmin } from '../../../../lib/session';
 import StoreFields from '../../../../components/StoreFields';
 import SubmitButton from '../../../../components/SubmitButton';
 import { ownerLogin, ownerLogout, saveStore } from './actions';
@@ -11,7 +11,8 @@ export default async function EditPage({ params, searchParams }) {
   const { data: s } = await admin().from('stores').select('*').eq('slug', params.slug).maybeSingle();
   if (!s) notFound();
 
-  const isOwner = (await getOwnerSession()) === s.id;
+  const adminIn = await isAdmin();
+  const isOwner = (await getOwnerSession()) === s.id || adminIn;
   const err = searchParams.error ? <div className="msg err" role="alert">{searchParams.error}</div> : null;
 
   if (!isOwner) {
@@ -42,7 +43,7 @@ export default async function EditPage({ params, searchParams }) {
       {err}
       <form action={saveStore}>
         <input type="hidden" name="slug" value={s.slug} />
-        <StoreFields d={s} withImages passwordLabel="New owner password (leave empty to keep the current one)" />
+        <StoreFields d={s} withImages showPlaceId={adminIn} passwordLabel="New owner password (leave empty to keep the current one)" />
         <SubmitButton label="Save changes" />
       </form>
       <form action={ownerLogout} style={{ marginTop: 12 }}>

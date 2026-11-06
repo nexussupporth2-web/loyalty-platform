@@ -34,7 +34,8 @@ export async function saveStore(fd) {
   const slug = slugOf(fd);
   const db = admin();
   const { data: s } = await db.from('stores').select('id,store_images').eq('slug', slug).maybeSingle();
-  if (!s || (await getOwnerSession()) !== s.id) redirect(`/s/${slug}/edit`);
+  const adm = await isAdmin();
+  if (!s || (((await getOwnerSession()) !== s.id) && !adm)) redirect(`/s/${slug}/edit`);
 
   const x = readStoreForm(fd);
   const err = checkStoreForm(x, false);
@@ -45,6 +46,8 @@ export async function saveStore(fd) {
   if (keep.length + x.images.length > 5) back(slug, 'You can have at most 5 store images.');
 
   const update = { ...x.f, ...socialColumns(x.social) };
+  // Only the master admin can see or change the Place ID; for everyone else it stays as it is.
+  if (!adm) delete update.google_place_id;
 
   if (x.logo && x.logo.size) {
     const url = await uploadLogo(db, slug, x.logo);
