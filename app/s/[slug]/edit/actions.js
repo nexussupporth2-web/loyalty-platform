@@ -4,9 +4,10 @@ import bcrypt from 'bcryptjs';
 import { redirect } from 'next/navigation';
 import { admin } from '../../../../lib/supabase';
 import { setOwnerSession, getOwnerSession, clearOwnerSession, isAdmin } from '../../../../lib/session';
-import { addMonths, todayIST, prettyDate, normalizeCode } from '../../../../lib/membership';
+import { addMonths, addDays, DEMO_DAYS, todayIST, prettyDate, normalizeCode } from '../../../../lib/membership';
+import { schemeEnded } from '../../../../lib/scheme';
 import {
-  readStoreForm, checkStoreForm, uploadLogo, uploadImages, socialColumns,
+  readStoreForm, readScheme, checkStoreForm, uploadLogo, uploadImages, socialColumns,
 } from '../../../../lib/storeForm';
 
 const back = (slug, msg) => redirect(`/s/${slug}/edit?error=${encodeURIComponent(msg)}`);
@@ -33,7 +34,7 @@ export async function ownerLogout(fd) {
 export async function saveStore(fd) {
   const slug = slugOf(fd);
   const db = admin();
-  const { data: s } = await db.from('stores').select('id,store_images').eq('slug', slug).maybeSingle();
+  const { data: s } = await db.from('stores').select('*').eq('slug', slug).maybeSingle();
   const adm = await isAdmin();
   if (!s || (((await getOwnerSession()) !== s.id) && !adm)) redirect(`/s/${slug}/edit`);
 
@@ -46,6 +47,16 @@ export async function saveStore(fd) {
   if (keep.length + x.images.length > 5) back(slug, 'You can have at most 5 store images.');
 
   const update = { ...x.f, ...socialColumns(x.social) };
+  const sc = readScheme(fd);
+  if (sc.end && !/^\d{4}-\d{2}-\d{2}$/.test(sc.end)) back(slug, 'Please pick a valid scheme end date.');
+  const oldEnd = s.scheme_end || '';
+  if (sc.end !== oldEnd) {
+    if (sc.end && sc.end < todayIST()) back(slug, 'The scheme end date cannot be in the past.');
+    // A new scheme after an ended one starts fresh today, so old entries stay at zero.
+    if (schemeEnded(s)) update.scheme_start = todayIST();
+  }
+  update.scheme_end = sc.end || null;
+  update.auto_approve = sc.auto;
   // Only the master admin can see or change the Place ID; for everyone else it stays as it is.
   if (!adm) delete update.google_place_id;
 
@@ -94,7 +105,7 @@ export async function activateMembership(fd) {
 
   const today = todayIST();
   const base = s.member_until && s.member_until >= today ? s.member_until : today;
-  const until = addMonths(base, c.months);
+  const until = c.plan === 'demo' ? addDays(base, DEMO_DAYS) : addMonths(base, c.months);
   const r = await db.from('stores').update({ member_plan: c.plan, member_until: until }).eq('id', s.id);
   if (r.error) {
     // Give the code back so it can be tried again.
