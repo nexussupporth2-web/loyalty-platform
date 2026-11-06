@@ -33,14 +33,24 @@ export default async function AdminPage({ searchParams }) {
   const { data: ms } = await db.from('memberships').select('store_id');
   const { data: codes } = await db.from('activation_codes').select('code,plan,created_at')
     .is('used_at', null).order('created_at', { ascending: false }).limit(20);
+  const q = (searchParams.q || '').toString().trim();
+  const qDigits = q.replace(/\D/g, '');
+  const shown = !q ? (stores || []) : (stores || []).filter((s) =>
+    (s.business_name || '').toLowerCase().includes(q.toLowerCase()) ||
+    (qDigits.length >= 4 && (s.store_card_no || '').endsWith(qDigits))
+  );
   const counts = {};
   (ms || []).forEach((m) => { counts[m.store_id] = (counts[m.store_id] || 0) + 1; });
 
   return (
     <>
       <h1>Main admin</h1>
-      <p className="sub">{(stores || []).length} stores</p>
+      <p className="sub">{q ? `${shown.length} of ${(stores || []).length} stores` : `${(stores || []).length} stores`}</p>
       <a className="btn" href="/register" style={{ margin: '12px 0' }}>Register a new store</a>
+      <form method="get" action="/admin" style={{ margin: '12px 0' }}>
+        <input name="q" defaultValue={q} placeholder="Store name or last 6 digits of card" autoComplete="off" />
+        <button className="btn" type="submit" style={{ marginTop: 8 }}>Search existing store</button>
+      </form>
       {err}
       {msg}
       <div style={{ border: '1px solid var(--bd)', background: 'var(--card)', borderRadius: 14, padding: 12, marginTop: 12 }}>
@@ -65,9 +75,9 @@ export default async function AdminPage({ searchParams }) {
           </>
         )}
       </div>
-      {(stores || []).map((s) => (
+      {shown.map((s) => (
         <div key={s.id} style={{ border: '1px solid var(--bd)', background: 'var(--card)', borderRadius: 14, padding: 12, marginTop: 12 }}>
-          <strong><a href={`/s/${s.slug}`}>{s.business_name}</a></strong>
+          <strong><a href={`/s/${s.slug}?manager=1`}>{s.business_name}</a></strong>
           <div className="sub">{s.contact_person} · {s.contact_number}</div>
           <div className="sub">
             {counts[s.id] || 0} customers · created {new Date(s.created_at).toLocaleDateString('en-GB')}
