@@ -1,7 +1,7 @@
 import { notFound, redirect } from 'next/navigation';
 import { admin } from '../../../../lib/supabase';
 import { getSession } from '../../../../lib/session';
-import { tierFor } from '../../../../lib/points';
+import { levelFor } from '../../../../lib/points';
 import { logout } from '../join/actions';
 import { addEntry } from './actions';
 import FlipCard from '../../../../components/FlipCard';
@@ -95,7 +95,7 @@ export default async function CardPage({ params, searchParams }) {
           logo={s.logo_url}
           member={c.name.toUpperCase()}
           number={number}
-          tier={tierFor(earned)}
+          tier={levelFor(earned, s.redeem_rules)}
           rules={s.redeem_rules}
         />
       </div>
