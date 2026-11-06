@@ -3,6 +3,7 @@ import { admin } from '../../../../lib/supabase';
 import { getOwnerSession, isAdmin } from '../../../../lib/session';
 import { buildLedger } from '../../../../lib/ledger';
 import { earnedFor } from '../../../../lib/points';
+import { inScheme } from '../../../../lib/scheme';
 import Statement from '../../../../components/Statement';
 import SubmitButton from '../../../../components/SubmitButton';
 import ConfirmButton from '../../../../components/ConfirmButton';
@@ -77,7 +78,7 @@ function EntryCard({ e, url, slug, q, who }) {
 
 export default async function LedgerPage({ params, searchParams }) {
   const db = admin();
-  const { data: s } = await db.from('stores').select('id,business_name,slug').eq('slug', params.slug).maybeSingle();
+  const { data: s } = await db.from('stores').select('*').eq('slug', params.slug).maybeSingle();
   if (!s) notFound();
   if (((await getOwnerSession()) !== s.id && !(await isAdmin()))) redirect(`/s/${s.slug}/edit`);
 
@@ -94,8 +95,10 @@ export default async function LedgerPage({ params, searchParams }) {
       content = [];
       for (const m of ms) {
         const { data: c } = await db.from('customers').select('name,phone,email').eq('id', m.customer_id).maybeSingle();
-        const { data: es } = await db.from('entries').select('*').eq('membership_id', m.id).order('created_at', { ascending: false });
-        const { data: rs } = await db.from('redemptions').select('*').eq('membership_id', m.id);
+        const { data: esAll } = await db.from('entries').select('*').eq('membership_id', m.id).order('created_at', { ascending: false });
+        const { data: rsAll } = await db.from('redemptions').select('*').eq('membership_id', m.id);
+        const es = inScheme(s, esAll);
+        const rs = inScheme(s, rsAll);
         const { rows, totals } = buildLedger(es || [], rs || []);
         const urls = await signedMap(db, es || []);
         content.push(
@@ -149,8 +152,10 @@ export default async function LedgerPage({ params, searchParams }) {
       ? await db.from('customers').select('id,name').in('id', cids)
       : { data: [] };
     const names = Object.fromEntries((cs || []).map((c) => [c.id, c.name]));
-    const { data: ev } = await db.from('entries').select('membership_id,points').eq('store_id', s.id).eq('status', 'verified');
-    const { data: rv } = await db.from('redemptions').select('membership_id,points').eq('store_id', s.id);
+    const { data: evAll } = await db.from('entries').select('membership_id,points,created_at').eq('store_id', s.id).eq('status', 'verified');
+    const { data: rvAll } = await db.from('redemptions').select('membership_id,points,created_at').eq('store_id', s.id);
+    const ev = inScheme(s, evAll);
+    const rv = inScheme(s, rvAll);
     const avail = {};
     (ev || []).forEach((e) => { avail[e.membership_id] = (avail[e.membership_id] || 0) + e.points; });
     (rv || []).forEach((r) => { avail[r.membership_id] = (avail[r.membership_id] || 0) - r.points; });

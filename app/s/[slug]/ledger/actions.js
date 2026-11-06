@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { admin } from '../../../../lib/supabase';
 import { getOwnerSession, isAdmin } from '../../../../lib/session';
 import { earnedFor } from '../../../../lib/points';
+import { inScheme } from '../../../../lib/scheme';
 
 const sum = (rows) => (rows || []).reduce((t, r) => t + r.points, 0);
 
@@ -11,7 +12,7 @@ async function guard(fd) {
   const slug = (fd.get('slug') || '').toString();
   const q = (fd.get('q') || '').toString().replace(/\D/g, '').slice(0, 6);
   const db = admin();
-  const { data: s } = await db.from('stores').select('id').eq('slug', slug).maybeSingle();
+  const { data: s } = await db.from('stores').select('*').eq('slug', slug).maybeSingle();
   if (!s || ((await getOwnerSession()) !== s.id && !(await isAdmin()))) redirect(`/s/${slug}/edit`);
   const back = (msg) => redirect(`/s/${slug}/ledger?${q ? 'q=' + q + '&' : ''}msg=${encodeURIComponent(msg)}`);
   return { db, s, slug, back };
@@ -44,9 +45,9 @@ export async function redeemPoints(fd) {
   if (!m) back('Customer not found.');
   const pts = Math.floor(Number(fd.get('points')));
   if (!(pts > 0)) back('Enter the number of points to redeem.');
-  const { data: es } = await db.from('entries').select('points').eq('membership_id', mid).eq('status', 'verified');
-  const { data: rs } = await db.from('redemptions').select('points').eq('membership_id', mid);
-  const available = sum(es) - sum(rs);
+  const { data: es } = await db.from('entries').select('points,created_at').eq('membership_id', mid).eq('status', 'verified');
+  const { data: rs } = await db.from('redemptions').select('points,created_at').eq('membership_id', mid);
+  const available = sum(inScheme(s, es)) - sum(inScheme(s, rs));
   if (pts > available) back(`Only ${available} points are available.`);
   const note = (fd.get('note') || '').toString().trim().slice(0, 80) || null;
   const r = await db.from('redemptions').insert({ store_id: s.id, membership_id: mid, points: pts, note });
