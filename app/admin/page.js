@@ -1,7 +1,8 @@
 import { admin } from '../../lib/supabase';
 import { isAdmin } from '../../lib/session';
 import SubmitButton from '../../components/SubmitButton';
-import { adminLogin, adminLogout, deleteStore } from './actions';
+import { adminLogin, adminLogout, deleteStore, setMembership } from './actions';
+import { PLANS, membershipStatus, prettyDate } from '../../lib/membership';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,7 +28,7 @@ export default async function AdminPage({ searchParams }) {
 
   const db = admin();
   const { data: stores } = await db.from('stores')
-    .select('id,slug,business_name,contact_person,contact_number,created_at')
+    .select('*')
     .order('created_at', { ascending: false });
   const { data: ms } = await db.from('memberships').select('store_id');
   const counts = {};
@@ -47,6 +48,27 @@ export default async function AdminPage({ searchParams }) {
           <div className="sub">
             {counts[s.id] || 0} customers · created {new Date(s.created_at).toLocaleDateString('en-GB')}
           </div>
+          {(() => {
+            const ms = membershipStatus(s);
+            const text = ms.state === 'none' ? 'Membership: not set'
+              : ms.state === 'expired' ? `Membership: EXPIRED on ${prettyDate(ms.until)}`
+              : `Membership: until ${prettyDate(ms.until)} (${ms.left} day${ms.left === 1 ? '' : 's'} left)`;
+            return (
+              <div style={{ marginTop: 8 }}>
+                <div className="sub" style={{ color: ms.state === 'expired' ? '#D14B4B' : undefined, fontWeight: 600 }}>{text}</div>
+                <form action={setMembership} style={{ marginTop: 6 }}>
+                  <input type="hidden" name="id" value={s.id} />
+                  <label htmlFor={`plan-${s.id}`}>Membership plan paid</label>
+                  <select id={`plan-${s.id}`} name="plan" defaultValue="12">
+                    {PLANS.map((p) => (
+                      <option key={p.key} value={p.key}>{p.label} (₹{p.price})</option>
+                    ))}
+                  </select>
+                  <SubmitButton label="Record payment" busyLabel="Saving…" />
+                </form>
+              </div>
+            );
+          })()}
           <details style={{ marginTop: 8 }}>
             <summary style={{ color: '#D14B4B', fontWeight: 600, cursor: 'pointer' }}>Delete this store</summary>
             <form action={deleteStore}>

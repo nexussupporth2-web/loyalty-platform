@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { timingSafeEqual } from 'crypto';
 import { admin } from '../../lib/supabase';
 import { setAdminSession, isAdmin, clearAdminSession } from '../../lib/session';
+import { PLANS, addMonths, todayIST, prettyDate } from '../../lib/membership';
 
 const same = (a, b) => {
   const x = Buffer.from(a);
@@ -57,4 +58,21 @@ export async function deleteStore(fd) {
   if (orphans.length) await db.from('customers').delete().in('id', orphans);
 
   go('msg', `Deleted ${s.business_name}.`);
+}
+
+// Records a payment: the membership runs from today (or from the current end date, if it has not ended yet).
+export async function setMembership(fd) {
+  if (!(await isAdmin())) redirect('/admin');
+  const id = (fd.get('id') || '').toString();
+  const plan = PLANS.find((p) => p.key === (fd.get('plan') || '').toString());
+  if (!plan) go('error', 'Choose a membership plan.');
+  const db = admin();
+  const { data: s } = await db.from('stores').select('*').eq('id', id).maybeSingle();
+  if (!s) go('error', 'Store not found.');
+  const today = todayIST();
+  const base = s.member_until && s.member_until >= today ? s.member_until : today;
+  const until = addMonths(base, plan.months);
+  const r = await db.from('stores').update({ member_plan: plan.key, member_until: until }).eq('id', s.id);
+  if (r.error) go('error', 'Could not save the membership: ' + (r.error.message || '').slice(0, 120) + ' (Run the membership SQL in Supabase first.)');
+  go('msg', `${s.business_name}: membership now runs until ${prettyDate(until)}.`);
 }
