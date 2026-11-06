@@ -23,7 +23,7 @@ export default function StoreFields({
       <label htmlFor="address">Address / location *</label>
       <textarea id="address" name="address" rows={2} required maxLength={300} defaultValue={v('address')} />
       <label htmlFor="map_url">Google Maps location link (optional, starts with https://)</label>
-      <input id="map_url" name="map_url" type="url" maxLength={500} defaultValue={v('map_url')} />
+      <input id="map_url" name="map_url" type="text" maxLength={500} defaultValue={v('map_url')} />
 
       {withImages && (
         <>
