@@ -26,7 +26,8 @@ export default function StoreFront({ store: s, mode, searchParams = {}, cardNo =
 
       <StoreHeader
         store={s}
-        gearHref={manager ? `/s/${s.slug}/edit` : `/s/${s.slug}?manager=1`}
+        gearHref={`/s/${s.slug}/edit`}
+        showGear={manager}
       />
 
       <StoreGallery images={s.store_images} />
@@ -51,7 +52,7 @@ export default function StoreFront({ store: s, mode, searchParams = {}, cardNo =
               brandName={BRAND_NAME}
               brandLogo={BRAND_LOGO}
               plans={PLANS}
-              until={ms.until ? prettyDate(ms.until) : ''}
+              until={ms.state === 'life' ? 'Lifetime' : ms.until ? prettyDate(ms.until) : ''}
             />
           </div>
         </>
@@ -78,8 +79,12 @@ export default function StoreFront({ store: s, mode, searchParams = {}, cardNo =
         <a className="btn" href={`/s/${s.slug}/ledger`} style={{ marginTop: 24 }}>Customer ledger</a>
       )}
 
-      <h2>QR standee</h2>
-      <StandeeSection store={s} url={url} showActions={manager} />
+      {manager && (
+        <>
+          <h2>QR standee</h2>
+          <StandeeSection store={s} url={url} showActions />
+        </>
+      )}
     </>
   );
 }

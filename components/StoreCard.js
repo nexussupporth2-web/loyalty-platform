@@ -68,7 +68,7 @@ export default function StoreCard({ storeName, number, brandName, brandLogo, pla
                 </div>
                 <div className="row">
                   <span className="sm">{plans.some((p) => p.recommended) ? '* Recommended' : ''}</span>
-                  <span className="sm">{until ? `Valid until ${until}` : 'Validity not set yet'}</span>
+                  <span className="sm">{until === 'Lifetime' ? 'Lifetime membership' : until ? `Valid until ${until}` : 'Validity not set yet'}</span>
                 </div>
               </div>
             </div>

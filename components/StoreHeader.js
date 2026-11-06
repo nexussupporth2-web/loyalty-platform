@@ -72,7 +72,7 @@ function Gear({ size }) {
   );
 }
 
-export default function StoreHeader({ store: s, gearHref }) {
+export default function StoreHeader({ store: s, gearHref, showGear = true }) {
   const links = socialLinks(s);
   const icons = links.filter((l) => l.key !== 'review');
   const review = links.find((l) => l.key === 'review');
@@ -106,9 +106,11 @@ export default function StoreHeader({ store: s, gearHref }) {
         </div>
 
         <div className="sh-right">
-          <a className="sh-gear" href={gearHref || `/s/${s.slug}/edit`} aria-label="Store settings">
-            <Gear size={28} />
-          </a>
+          {showGear && (
+            <a className="sh-gear" href={gearHref || `/s/${s.slug}/edit`} aria-label="Store settings">
+              <Gear size={28} />
+            </a>
+          )}
           {icons.length > 0 && (
             <div className="sh-icons">
               {icons.map((i) => (
