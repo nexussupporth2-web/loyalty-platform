@@ -4,6 +4,9 @@ import bcrypt from 'bcryptjs';
 import { redirect } from 'next/navigation';
 import { admin } from '../../../../lib/supabase';
 import { setSession, clearSession } from '../../../../lib/session';
+import { isExpired } from '../../../../lib/membership';
+
+const PAUSED = 'Joining is paused at this store for now. Please contact the store.';
 
 function parse(fd) {
   const method = fd.get('method') === 'email' ? 'email' : 'mobile';
@@ -34,15 +37,17 @@ function validate(p, mode) {
 }
 
 async function getStore(db, p) {
-  const { data } = await db.from('stores').select('id').eq('slug', p.slug).eq('status', 'active').maybeSingle();
+  const { data } = await db.from('stores').select('*').eq('slug', p.slug).eq('status', 'active').maybeSingle();
   if (!data) redirect('/');
   return data;
 }
 
-async function ensureMember(db, p, mode, storeId, customerId) {
+async function ensureMember(db, p, mode, store, customerId) {
+  const storeId = store.id;
   const { data: m } = await db.from('memberships').select('id')
     .eq('store_id', storeId).eq('customer_id', customerId).maybeSingle();
   if (m) return;
+  if (isExpired(store)) bad(p, mode, PAUSED);
   const member_no = Array.from({ length: 16 }, () => Math.floor(Math.random() * 10)).join('');
   const r = await db.from('memberships').insert({ store_id: storeId, customer_id: customerId, member_no });
   if (r.error) bad(p, mode, 'Could not create your card. Please try again.');
@@ -53,6 +58,7 @@ export async function join(fd) {
   validate(p, 'join');
   const db = admin();
   const store = await getStore(db, p);
+  if (isExpired(store)) bad(p, 'join', PAUSED);
   const col = p.method === 'mobile' ? 'phone' : 'email';
   let { data: c } = await db.from('customers').select('*').eq(col, p[col]).maybeSingle();
   if (c) {
@@ -66,7 +72,7 @@ export async function join(fd) {
     if (ins.error) bad(p, 'join', 'Could not create your account. Please try again.');
     c = ins.data;
   }
-  await ensureMember(db, p, 'join', store.id, c.id);
+  await ensureMember(db, p, 'join', store, c.id);
   await setSession(c.id);
   redirect(`/s/${p.slug}/card`);
 }
@@ -81,7 +87,7 @@ export async function login(fd) {
   if (!c || !(await bcrypt.compare(p.secret, c.pin_hash))) {
     bad(p, 'login', 'Wrong details. Please check and try again.');
   }
-  await ensureMember(db, p, 'login', store.id, c.id);
+  await ensureMember(db, p, 'login', store, c.id);
   await setSession(c.id);
   redirect(`/s/${p.slug}/card`);
 }
