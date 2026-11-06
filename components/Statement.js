@@ -15,8 +15,9 @@ const num = { ...td, textAlign: 'right', whiteSpace: 'nowrap' };
 export default function Statement({ rows, totals }) {
   return (
     <>
-      <h2>Statement</h2>
+      <h2 style={{ textAlign: 'center' }}>Statement</h2>
       <div style={{ border: '1px solid var(--bd)', borderRadius: 12, background: 'var(--card)', overflow: 'hidden' }}>
+        {rows.length > 0 && (
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, minWidth: 400 }}>
             <thead>
@@ -29,9 +30,6 @@ export default function Statement({ rows, totals }) {
               </tr>
             </thead>
             <tbody>
-              {rows.length === 0 && (
-                <tr><td style={{ ...td, textAlign: 'center', color: 'var(--tx2)' }} colSpan={5}>No entries yet</td></tr>
-              )}
               {rows.map((r) => {
                 const c = r.status ? CHIP[r.status] : null;
                 return (
@@ -56,8 +54,9 @@ export default function Statement({ rows, totals }) {
             </tbody>
           </table>
         </div>
+        )}
 
-        <div style={{ borderTop: '2px solid var(--bd)', padding: 12, display: 'grid', gap: 6, fontSize: 14 }}>
+        <div style={{ borderTop: rows.length > 0 ? '2px solid var(--bd)' : 'none', padding: 12, display: 'grid', gap: 6, fontSize: 14 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span>Total entries made</span><strong>{totals.entries}</strong>
           </div>
