@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import { timingSafeEqual } from 'crypto';
 import { admin } from '../../lib/supabase';
 import { setAdminSession, isAdmin, clearAdminSession } from '../../lib/session';
-import { PLANS, addMonths, todayIST, prettyDate } from '../../lib/membership';
+import { PLANS, addMonths, todayIST, prettyDate, makeActivationCode, showCode } from '../../lib/membership';
 
 const same = (a, b) => {
   const x = Buffer.from(a);
@@ -81,4 +81,21 @@ export async function setMembership(fd) {
   const r = await db.from('stores').update({ member_plan: plan.key, member_until: until }).eq('id', s.id);
   if (r.error) go('error', 'Could not save the membership: ' + (r.error.message || '').slice(0, 120) + ' (Run the membership SQL in Supabase first.)');
   go('msg', `${s.business_name}: membership now runs until ${prettyDate(until)}.`);
+}
+
+// Makes a one-time activation code for a plan. Give it to the store; it works once.
+export async function generateCode(fd) {
+  if (!(await isAdmin())) redirect('/admin');
+  const plan = PLANS.find((p) => p.key === (fd.get('plan') || '').toString());
+  if (!plan) go('error', 'Choose a plan for the code.');
+  const db = admin();
+  for (let i = 0; i < 5; i++) {
+    const code = makeActivationCode();
+    const r = await db.from('activation_codes').insert({ code, plan: plan.key, months: plan.months });
+    if (!r.error) go('msg', `New code for ${plan.label}: ${showCode(code)}`);
+    if (!/duplicate|unique/i.test(r.error.message || '')) {
+      go('error', 'Could not make the code: ' + (r.error.message || '').slice(0, 120) + ' (Run the activation-codes SQL in Supabase first.)');
+    }
+  }
+  go('error', 'Could not make a code. Please try again.');
 }

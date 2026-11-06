@@ -1,8 +1,8 @@
 import { admin } from '../../lib/supabase';
 import { isAdmin } from '../../lib/session';
 import SubmitButton from '../../components/SubmitButton';
-import { adminLogin, adminLogout, deleteStore, setMembership } from './actions';
-import { PLANS, membershipStatus, prettyDate } from '../../lib/membership';
+import { adminLogin, adminLogout, deleteStore, setMembership, generateCode } from './actions';
+import { PLANS, membershipStatus, prettyDate, showCode } from '../../lib/membership';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,6 +31,8 @@ export default async function AdminPage({ searchParams }) {
     .select('*')
     .order('created_at', { ascending: false });
   const { data: ms } = await db.from('memberships').select('store_id');
+  const { data: codes } = await db.from('activation_codes').select('code,plan,created_at')
+    .is('used_at', null).order('created_at', { ascending: false }).limit(20);
   const counts = {};
   (ms || []).forEach((m) => { counts[m.store_id] = (counts[m.store_id] || 0) + 1; });
 
@@ -41,6 +43,28 @@ export default async function AdminPage({ searchParams }) {
       <a className="btn" href="/register" style={{ margin: '12px 0' }}>Register a new store</a>
       {err}
       {msg}
+      <div style={{ border: '1px solid var(--bd)', background: 'var(--card)', borderRadius: 14, padding: 12, marginTop: 12 }}>
+        <strong>Activation codes</strong>
+        <form action={generateCode} style={{ marginTop: 6 }}>
+          <label htmlFor="code-plan">Make a one-time code for</label>
+          <select id="code-plan" name="plan" defaultValue="12">
+            {PLANS.map((p) => (
+              <option key={p.key} value={p.key}>{p.label} (₹{p.price})</option>
+            ))}
+          </select>
+          <SubmitButton label="Generate code" busyLabel="Making…" />
+        </form>
+        {(codes || []).length > 0 && (
+          <>
+            <p className="sub" style={{ margin: '10px 0 4px' }}>Unused codes</p>
+            {(codes || []).map((c) => (
+              <div key={c.code} className="sub" style={{ fontFamily: 'ui-monospace, Menlo, Consolas, monospace' }}>
+                {showCode(c.code)} · {(PLANS.find((p) => p.key === c.plan) || {}).label || c.plan}
+              </div>
+            ))}
+          </>
+        )}
+      </div>
       {(stores || []).map((s) => (
         <div key={s.id} style={{ border: '1px solid var(--bd)', background: 'var(--card)', borderRadius: 14, padding: 12, marginTop: 12 }}>
           <strong><a href={`/s/${s.slug}`}>{s.business_name}</a></strong>
