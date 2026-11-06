@@ -56,8 +56,11 @@ details{box-shadow:var(--shadow)}
   border-radius:20px;padding:12px 14px;background:var(--c1);color:var(--ct);
   box-shadow:var(--shadow);
 }
-.lc[data-t="Gold"]{--c1:#F7DCC5;--c2:#F2C9A8;--c3:#E9B98F;--ct:#5B3A22;--ct2:#86603F}
+.lc[data-t="Copper"]{--c1:#F4D3C4;--c2:#EBBBA4;--c3:#DEA387;--ct:#6A3320;--ct2:#955A43}
+.lc[data-t="Bronze"]{--c1:#EAD7B8;--c2:#DEC393;--c3:#D0AD74;--ct:#5E4217;--ct2:#8A6A30}
+.lc[data-t="Gold"]{--c1:#F7E8B4;--c2:#F1DB8F;--c3:#E7CC72;--ct:#5C4A0F;--ct2:#85702A}
 .lc[data-t="Platinum"]{--c1:#CBE5E0;--c2:#B2D8D1;--c3:#98CBC2;--ct:#24514B;--ct2:#4E7A73}
+.lc[data-t="Diamond"]{--c1:#DDD4F1;--c2:#CABEE9;--c3:#B6A6DF;--ct:#43357A;--ct2:#6E60A3}
 .circ{position:absolute;border-radius:50%}
 .c1{width:190px;height:190px;background:var(--c2);right:-70px;top:-85px;opacity:.85}
 .c2{width:140px;height:140px;background:var(--c3);left:-50px;bottom:-75px;opacity:.75}
