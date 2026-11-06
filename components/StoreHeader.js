@@ -72,7 +72,7 @@ function Gear({ size }) {
   );
 }
 
-export default function StoreHeader({ store: s, gearHref, showGear = true }) {
+export default function StoreHeader({ store: s, gearHref, showGear = true, note = null }) {
   const links = socialLinks(s);
   const icons = links.filter((l) => l.key !== 'review');
   const review = links.find((l) => l.key === 'review');
@@ -84,6 +84,7 @@ export default function StoreHeader({ store: s, gearHref, showGear = true }) {
         .sh-left,.sh-right{flex:1 1 0;min-width:0;display:flex;flex-direction:column}
         .sh-right{gap:10px}
         .sh-bottom{margin-top:auto}
+        .sh-note{flex:1 1 auto;display:flex;align-items:center;justify-content:center;text-align:center}
         .sh-logo{width:75%;aspect-ratio:1;border-radius:50%;object-fit:cover;background:#fff;border:4px solid #fff;box-shadow:var(--shadow);display:block}
         .sh-name{font-size:20px;font-weight:800;text-transform:uppercase;line-height:1.15;margin:12px 0 0;word-break:break-word}
         .sh-gear{align-self:flex-end;color:var(--tx2);padding:4px;display:flex}
@@ -126,6 +127,7 @@ export default function StoreHeader({ store: s, gearHref, showGear = true }) {
               ))}
             </div>
           )}
+          {note && <div className="sh-note">{note}</div>}
           {review && (
             <a className="sh-review sh-bottom" href={review.href} target="_blank" rel="noopener noreferrer">
               <span style={{ color: '#E3A93B' }}>★</span> Google reviews

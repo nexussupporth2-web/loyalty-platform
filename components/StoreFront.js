@@ -4,6 +4,7 @@ import StoreHeader from './StoreHeader';
 import StoreGallery from './StoreGallery';
 import StandeeSection from './StandeeSection';
 import StoreCard from './StoreCard';
+import ActivateMembership from './ActivateMembership';
 import { BRAND_LOGO } from '../lib/brandLogo';
 import { BRAND_NAME, PLANS, membershipStatus, prettyDate } from '../lib/membership';
 
@@ -23,11 +24,31 @@ export default function StoreFront({ store: s, mode, searchParams = {}, cardNo =
         </div>
       )}
       {searchParams.saved && <div className="msg ok">Your changes are saved.</div>}
+      {manager && searchParams.activated && (
+        <div className="msg ok" style={{ wordBreak: 'normal' }}>Membership activated. It now runs until {searchParams.activated}.</div>
+      )}
+      {manager && searchParams.codeerror && (
+        <div className="msg err" role="alert" style={{ wordBreak: 'normal' }}>{searchParams.codeerror}</div>
+      )}
 
       <StoreHeader
         store={s}
         gearHref={`/s/${s.slug}/edit`}
         showGear={manager}
+        note={
+          manager && (ms.state === 'soon' || ms.state === 'expired') ? (
+            <ActivateMembership
+              slug={s.slug}
+              text={
+                ms.state === 'expired'
+                  ? 'Membership expired. Tap to renew'
+                  : ms.left === 0
+                    ? 'Membership will expire today'
+                    : `Membership will expire in ${ms.left} day${ms.left === 1 ? '' : 's'}`
+              }
+            />
+          ) : null
+        }
       />
 
       <StoreGallery images={s.store_images} />
