@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import { timingSafeEqual } from 'crypto';
 import { admin } from '../../lib/supabase';
 import { setAdminSession, isAdmin, clearAdminSession } from '../../lib/session';
-import { PLANS, addMonths, todayIST, prettyDate, makeActivationCode, showCode } from '../../lib/membership';
+import { PLANS, CODE_PLANS, addMonths, todayIST, prettyDate, makeActivationCode, showCode } from '../../lib/membership';
 
 const same = (a, b) => {
   const x = Buffer.from(a);
@@ -86,7 +86,7 @@ export async function setMembership(fd) {
 // Makes a one-time activation code for a plan. Give it to the store; it works once.
 export async function generateCode(fd) {
   if (!(await isAdmin())) redirect('/admin');
-  const plan = PLANS.find((p) => p.key === (fd.get('plan') || '').toString());
+  const plan = CODE_PLANS.find((p) => p.key === (fd.get('plan') || '').toString());
   if (!plan) go('error', 'Choose a plan for the code.');
   const db = admin();
   for (let i = 0; i < 5; i++) {

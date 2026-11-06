@@ -2,7 +2,7 @@ import { admin } from '../../lib/supabase';
 import { isAdmin } from '../../lib/session';
 import SubmitButton from '../../components/SubmitButton';
 import { adminLogin, adminLogout, deleteStore, setMembership, generateCode } from './actions';
-import { PLANS, membershipStatus, prettyDate, showCode } from '../../lib/membership';
+import { PLANS, CODE_PLANS, membershipStatus, prettyDate, showCode } from '../../lib/membership';
 
 export const dynamic = 'force-dynamic';
 
@@ -58,8 +58,8 @@ export default async function AdminPage({ searchParams }) {
         <form action={generateCode} style={{ marginTop: 6 }}>
           <label htmlFor="code-plan">Make a one-time code for</label>
           <select id="code-plan" name="plan" defaultValue="12">
-            {PLANS.map((p) => (
-              <option key={p.key} value={p.key}>{p.label} (₹{p.price})</option>
+            {CODE_PLANS.map((p) => (
+              <option key={p.key} value={p.key}>{p.price ? `${p.label} (₹${p.price})` : p.label}</option>
             ))}
           </select>
           <SubmitButton label="Generate code" busyLabel="Making…" />
@@ -69,7 +69,7 @@ export default async function AdminPage({ searchParams }) {
             <p className="sub" style={{ margin: '10px 0 4px' }}>Unused codes</p>
             {(codes || []).map((c) => (
               <div key={c.code} className="sub" style={{ fontFamily: 'ui-monospace, Menlo, Consolas, monospace' }}>
-                {showCode(c.code)} · {(PLANS.find((p) => p.key === c.plan) || {}).label || c.plan}
+                {showCode(c.code)} · {(CODE_PLANS.find((p) => p.key === c.plan) || {}).label || c.plan}
               </div>
             ))}
           </>
