@@ -2,7 +2,7 @@
 
 import { redirect } from 'next/navigation';
 import { admin } from '../../../../lib/supabase';
-import { getOwnerSession } from '../../../../lib/session';
+import { getOwnerSession, isAdmin } from '../../../../lib/session';
 import { earnedFor } from '../../../../lib/points';
 
 const sum = (rows) => (rows || []).reduce((t, r) => t + r.points, 0);
@@ -12,7 +12,7 @@ async function guard(fd) {
   const q = (fd.get('q') || '').toString().replace(/\D/g, '').slice(0, 6);
   const db = admin();
   const { data: s } = await db.from('stores').select('id').eq('slug', slug).maybeSingle();
-  if (!s || (await getOwnerSession()) !== s.id) redirect(`/s/${slug}/edit`);
+  if (!s || ((await getOwnerSession()) !== s.id && !(await isAdmin()))) redirect(`/s/${slug}/edit`);
   const back = (msg) => redirect(`/s/${slug}/ledger?${q ? 'q=' + q + '&' : ''}msg=${encodeURIComponent(msg)}`);
   return { db, s, slug, back };
 }

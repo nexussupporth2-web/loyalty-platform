@@ -1,6 +1,6 @@
 import { notFound, redirect } from 'next/navigation';
 import { admin } from '../../../../lib/supabase';
-import { getOwnerSession } from '../../../../lib/session';
+import { getOwnerSession, isAdmin } from '../../../../lib/session';
 import { buildLedger } from '../../../../lib/ledger';
 import { earnedFor } from '../../../../lib/points';
 import Statement from '../../../../components/Statement';
@@ -79,7 +79,7 @@ export default async function LedgerPage({ params, searchParams }) {
   const db = admin();
   const { data: s } = await db.from('stores').select('id,business_name,slug').eq('slug', params.slug).maybeSingle();
   if (!s) notFound();
-  if ((await getOwnerSession()) !== s.id) redirect(`/s/${s.slug}/edit`);
+  if (((await getOwnerSession()) !== s.id && !(await isAdmin()))) redirect(`/s/${s.slug}/edit`);
 
   const q = (searchParams.q || '').toString().replace(/\D/g, '').slice(0, 6);
   const sort = ['new', 'az', 'points'].includes(searchParams.sort) ? searchParams.sort : 'new';
