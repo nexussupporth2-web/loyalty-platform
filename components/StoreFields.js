@@ -2,7 +2,7 @@ import LogoInput from './LogoInput';
 import ImagesInput from './ImagesInput';
 
 export default function StoreFields({
-  d = {}, logoRequired = false, passwordLabel, passwordRequired = false, withImages = false,
+  d = {}, logoRequired = false, passwordLabel, passwordRequired = false, withImages = false, showPlaceId = false,
 }) {
   const v = (k) => d[k] || '';
   const images = d.store_images || [];
@@ -60,8 +60,8 @@ export default function StoreFields({
 
       <h2>Optional: social and reviews</h2>
       <p className="sub">Only the ones you fill in will be shown to customers.</p>
-      <label htmlFor="whatsapp">WhatsApp number (with country code, e.g. 919876543210)</label>
-      <input id="whatsapp" name="whatsapp" type="tel" defaultValue={v('whatsapp')} />
+      <label htmlFor="whatsapp">Enter WhatsApp number (with country code, e.g. 919876543210) as required for WhatsApp, or paste your store group link for latest updates</label>
+      <input id="whatsapp" name="whatsapp" type="text" defaultValue={v('whatsapp')} />
       <label htmlFor="instagram">Instagram ID (without @)</label>
       <input id="instagram" name="instagram" maxLength={60} defaultValue={v('instagram')} />
       <label htmlFor="facebook">Facebook (page name or full link)</label>
@@ -70,8 +70,12 @@ export default function StoreFields({
       <input id="youtube" name="youtube" maxLength={300} defaultValue={v('youtube')} />
       <label htmlFor="review_url">Link to Google reviews (starts with https://)</label>
       <input id="review_url" name="review_url" type="url" maxLength={500} defaultValue={v('review_url')} />
-      <label htmlFor="google_place_id">Google Place ID (used if you have no reviews link)</label>
-      <input id="google_place_id" name="google_place_id" maxLength={200} defaultValue={v('google_place_id')} />
+      {showPlaceId && (
+        <>
+          <label htmlFor="google_place_id">For Master Admin use only</label>
+          <input id="google_place_id" name="google_place_id" type="password" autoComplete="off" maxLength={200} defaultValue={v('google_place_id')} />
+        </>
+      )}
 
       <h2>Owner password</h2>
       <label htmlFor="password">{passwordLabel}</label>
