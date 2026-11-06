@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { admin } from '../../../lib/supabase';
-import { getOwnerSession } from '../../../lib/session';
+import { getOwnerSession, isAdmin } from '../../../lib/session';
 import SubmitButton from '../../../components/SubmitButton';
 import StoreFront from '../../../components/StoreFront';
 import { ownerLogin } from './edit/actions';
@@ -19,7 +19,7 @@ export default async function StorePage({ params, searchParams }) {
   }
 
   // Store manager page (password protected): /s/your-store?manager=1
-  if ((await getOwnerSession()) !== s.id) {
+  if ((await getOwnerSession()) !== s.id && !(await isAdmin())) {
     return (
       <>
         <h1>Store manager login</h1>
