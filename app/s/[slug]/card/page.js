@@ -40,7 +40,9 @@ export default async function CardPage({ params, searchParams }) {
   const { data: reds } = await db.from('redemptions').select('*').eq('membership_id', m.id);
 
   const items = [
-    ...(entries || []).map((e) => ({ t: e.created_at, e })),
+    // The Statement lists only verified purchases (credits) and redemptions (debits).
+    // Every entry, whatever its status, is listed under "All purchase entries" below.
+    ...(entries || []).filter((e) => e.status === 'verified').map((e) => ({ t: e.created_at, e })),
     ...(reds || []).map((r) => ({ t: r.created_at, r })),
   ].sort((a, b) => new Date(a.t) - new Date(b.t));
 
