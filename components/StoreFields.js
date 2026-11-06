@@ -27,6 +27,17 @@ export default function StoreFields({
 
       {withImages && (
         <>
+          <label htmlFor="scheme_end">Scheme end date (all customers' entries and points go to zero after this date)</label>
+          <input id="scheme_end" name="scheme_end" type="date" defaultValue={v('scheme_end')} />
+          <label style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '14px 0' }}>
+            <input type="checkbox" name="auto_approve" defaultChecked={!!d.auto_approve} style={{ width: 'auto' }} />
+            Approve customer entries automatically (points are added without checking)
+          </label>
+        </>
+      )}
+
+      {withImages && (
+        <>
           <label htmlFor="redeem_rules">Redemption slabs shown on the back of the customer card (one per line, up to 6)</label>
           <textarea
             id="redeem_rules"

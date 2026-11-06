@@ -36,11 +36,13 @@ export default function StoreFront({ store: s, mode, searchParams = {}, cardNo =
         gearHref={`/s/${s.slug}/edit`}
         showGear={manager}
         note={
-          manager && (ms.state === 'soon' || ms.state === 'expired') ? (
+          manager && (ms.state === 'soon' || ms.state === 'expired' || ms.state === 'none') ? (
             <ActivateMembership
               slug={s.slug}
               text={
-                ms.state === 'expired'
+                ms.state === 'none'
+                  ? 'Store not activated. Tap to enter activation code'
+                  : ms.state === 'expired'
                   ? 'Membership expired. Tap to renew'
                   : ms.left === 0
                     ? 'Membership will expire today'
@@ -61,6 +63,11 @@ export default function StoreFront({ store: s, mode, searchParams = {}, cardNo =
               Your membership ends on {prettyDate(ms.until)} ({ms.left === 0 ? 'today' : `${ms.left} day${ms.left === 1 ? '' : 's'} left`}). Please renew to keep your store active.
             </div>
           )}
+          {ms.state === 'none' && (
+            <div className="msg err" style={{ wordBreak: 'normal' }}>
+              Your store is not activated yet. It is locked for customers until you enter an activation code.
+            </div>
+          )}
           {ms.state === 'expired' && (
             <div className="msg err" style={{ wordBreak: 'normal' }}>
               Your membership ended on {prettyDate(ms.until)}. Your store is locked for customers until it is renewed.
@@ -79,7 +86,7 @@ export default function StoreFront({ store: s, mode, searchParams = {}, cardNo =
         </>
       )}
 
-      {!manager && ms.state === 'expired' ? (
+      {!manager && (ms.state === 'expired' || ms.state === 'none') ? (
         <div className="msg err" style={{ wordBreak: 'normal' }}>
           Joining and new purchase entries are paused at this store for now. Please contact the store.
         </div>
