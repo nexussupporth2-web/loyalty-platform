@@ -60,12 +60,11 @@ export default function CardLinks({ store: s }) {
   return (
     <>
       <style>{`
-        .cl-name{font-size:26px;font-weight:800;text-transform:uppercase;line-height:1.15;margin:0 0 12px;word-break:break-word}
+        .cl-name{font-size:26px;font-weight:800;text-transform:uppercase;line-height:1.15;margin:0 0 12px;word-break:break-word;text-align:center}
         .cl-head{display:flex;gap:16px;align-items:center}
         .cl-logo{width:96px;height:96px;flex:0 0 96px;border-radius:50%;object-fit:cover;background:#fff;border:3px solid #fff;box-shadow:var(--shadow);display:block}
         .cl-right{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:flex-end;text-align:right}
-        .cl-tag{margin:0;color:var(--tx2);font-size:15px}
-        .cl-icons{display:flex;flex-wrap:nowrap;gap:14px;align-items:center;justify-content:flex-end;margin:12px 0 0}
+        .cl-icons{display:flex;flex-wrap:nowrap;gap:14px;align-items:center;justify-content:flex-end;margin:0}
         .cl-icons a{display:block;width:44px;height:44px;flex:0 0 44px}
         .cl-icons svg{width:100%;height:100%;display:block}
         .cl-btns{display:flex;gap:10px;margin:14px 0 0}
@@ -77,7 +76,6 @@ export default function CardLinks({ store: s }) {
       <div className="cl-head">
         <img className="cl-logo" src={s.logo_url} alt={`${s.business_name} logo`} />
         <div className="cl-right">
-          <p className="cl-tag">Your {s.business_name} loyalty card</p>
           {icons.length > 0 && (
             <div className="cl-icons">
               {icons.map((i) => (
