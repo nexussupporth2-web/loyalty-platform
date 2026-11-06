@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation';
 import { admin } from '../../../../lib/supabase';
 import { getSession } from '../../../../lib/session';
+import { isExpired } from '../../../../lib/membership';
 
 export async function addEntry(fd) {
   const slug = (fd.get('slug') || '').toString();
@@ -13,8 +14,9 @@ export async function addEntry(fd) {
   if (!cid) redirect(`/s/${slug}/join?mode=login`);
 
   const db = admin();
-  const { data: s } = await db.from('stores').select('id').eq('slug', slug).eq('status', 'active').maybeSingle();
+  const { data: s } = await db.from('stores').select('*').eq('slug', slug).eq('status', 'active').maybeSingle();
   if (!s) redirect('/');
+  if (isExpired(s)) oops('New purchase entries are paused at this store for now. Please contact the store.');
   const { data: m } = await db.from('memberships').select('id')
     .eq('store_id', s.id).eq('customer_id', cid).maybeSingle();
   if (!m) redirect(`/s/${slug}/join?mode=login`);
