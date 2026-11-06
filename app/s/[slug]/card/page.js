@@ -85,9 +85,9 @@ export default async function CardPage({ params, searchParams }) {
   return (
     <>
       {/* 1. Welcome */}
-      <h1>Welcome, {c.name}</h1>
       <p className="sub">Your {s.business_name} loyalty card</p>
       <CardLinks store={s} />
+      <h1 style={{ marginTop: 20 }}>Welcome, {c.name}</h1>
 
       {/* 2. Card */}
       <div style={{ margin: '16px 0' }}>
