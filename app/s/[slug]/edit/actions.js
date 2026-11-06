@@ -62,6 +62,6 @@ export async function saveStore(fd) {
   }
 
   const r = await db.from('stores').update(update).eq('id', s.id);
-  if (r.error) back(slug, 'Could not save. Please try again.');
+  if (r.error) back(slug, 'Could not save: ' + (r.error.message || 'unknown reason').slice(0, 160));
   redirect(`/s/${slug}?manager=1&saved=1`);
 }
