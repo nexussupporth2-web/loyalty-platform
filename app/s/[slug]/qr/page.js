@@ -1,5 +1,5 @@
 import { notFound, redirect } from 'next/navigation';
-import { getOwnerSession } from '../../../../lib/session';
+import { getOwnerSession, isAdmin } from '../../../../lib/session';
 import { headers } from 'next/headers';
 import QRCode from 'qrcode';
 import { admin } from '../../../../lib/supabase';
@@ -13,7 +13,7 @@ export default async function Standee({ params }) {
     .eq('slug', params.slug).eq('status', 'active').maybeSingle();
   if (!s) notFound();
   // Only the store manager (after the password) may open the standee page.
-  if ((await getOwnerSession()) !== s.id) redirect(`/s/${s.slug}?manager=1`);
+  if (((await getOwnerSession()) !== s.id && !(await isAdmin()))) redirect(`/s/${s.slug}?manager=1`);
 
   const url = `https://${headers().get('host')}/s/${s.slug}`;
   const qr = await QRCode.toDataURL(url, { width: 700, margin: 1, errorCorrectionLevel: 'H' });
