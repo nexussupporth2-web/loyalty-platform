@@ -4,6 +4,8 @@ import { redirect } from 'next/navigation';
 import { admin } from '../../../../lib/supabase';
 import { getSession } from '../../../../lib/session';
 import { isExpired } from '../../../../lib/membership';
+import { schemeEnded } from '../../../../lib/scheme';
+import { earnedFor } from '../../../../lib/points';
 
 export async function addEntry(fd) {
   const slug = (fd.get('slug') || '').toString();
@@ -17,6 +19,7 @@ export async function addEntry(fd) {
   const { data: s } = await db.from('stores').select('*').eq('slug', slug).eq('status', 'active').maybeSingle();
   if (!s) redirect('/');
   if (isExpired(s)) oops('New purchase entries are paused at this store for now. Please contact the store.');
+  if (schemeEnded(s)) oops('This offer scheme has ended. New entries are paused until the store starts a new scheme.');
   const { data: m } = await db.from('memberships').select('id')
     .eq('store_id', s.id).eq('customer_id', cid).maybeSingle();
   if (!m) redirect(`/s/${slug}/join?mode=login`);
@@ -60,6 +63,12 @@ export async function addEntry(fd) {
     }
   }
 
+  let points = null;
+  if (status === 'pending' && s.auto_approve) {
+    status = 'verified';
+    points = earnedFor(amount);
+  }
+
   const ins = await db.from('entries').insert({
     store_id: s.id,
     customer_id: cid,
@@ -69,6 +78,7 @@ export async function addEntry(fd) {
     amount: amount > 0 ? amount : null,
     bill_path: path,
     status,
+    points,
     reason: reason || null,
   });
   if (ins.error) oops('Could not save your entry. Please try again.');

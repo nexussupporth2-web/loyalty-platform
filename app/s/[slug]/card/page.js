@@ -8,6 +8,7 @@ import FlipCard from '../../../../components/FlipCard';
 import CardLinks from '../../../../components/CardLinks';
 import SubmitButton from '../../../../components/SubmitButton';
 import BillInput from '../../../../components/BillInput';
+import { inScheme } from '../../../../lib/scheme';
 import Statement from '../../../../components/Statement';
 
 export const dynamic = 'force-dynamic';
@@ -36,8 +37,10 @@ export default async function CardPage({ params, searchParams }) {
   const { data: c } = await db.from('customers').select('name').eq('id', cid).maybeSingle();
   if (!m || !c) redirect(`/s/${s.slug}/join?mode=login`);
 
-  const { data: entries } = await db.from('entries').select('*').eq('membership_id', m.id);
-  const { data: reds } = await db.from('redemptions').select('*').eq('membership_id', m.id);
+  const { data: entriesAll } = await db.from('entries').select('*').eq('membership_id', m.id);
+  const { data: redsAll } = await db.from('redemptions').select('*').eq('membership_id', m.id);
+  const entries = inScheme(s, entriesAll);
+  const reds = inScheme(s, redsAll);
 
   const items = [
     // The Statement lists only verified purchases (credits) and redemptions (debits).
@@ -106,6 +109,9 @@ export default async function CardPage({ params, searchParams }) {
       {/* 4. Add a new purchase */}
       {result === 'pending' && (
         <div className="msg ok">Entry submitted. Points are added after the store verifies your bill.</div>
+      )}
+      {result === 'verified' && (
+        <div className="msg ok">Entry added. Points have been credited.</div>
       )}
       {result === 'ineligible' && (
         <div className="msg err">Entry saved but not eligible: {searchParams.why}.</div>
