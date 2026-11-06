@@ -9,6 +9,7 @@ export default function RegisterForm({ error }) {
       <form action={createStore}>
         <StoreFields
           logoRequired
+          showPlaceId
           passwordRequired
           passwordLabel="Create an owner password (6 or more characters). You need it to edit your store later. *"
         />
