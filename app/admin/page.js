@@ -50,7 +50,8 @@ export default async function AdminPage({ searchParams }) {
           </div>
           {(() => {
             const ms = membershipStatus(s);
-            const text = ms.state === 'none' ? 'Membership: not set'
+            const text = ms.state === 'life' ? 'Membership: Lifetime'
+              : ms.state === 'none' ? 'Membership: not set'
               : ms.state === 'expired' ? `Membership: EXPIRED on ${prettyDate(ms.until)}`
               : `Membership: until ${prettyDate(ms.until)} (${ms.left} day${ms.left === 1 ? '' : 's'} left)`;
             return (
@@ -63,6 +64,7 @@ export default async function AdminPage({ searchParams }) {
                     {PLANS.map((p) => (
                       <option key={p.key} value={p.key}>{p.label} (₹{p.price})</option>
                     ))}
+                    <option value="life">Lifetime (demo account)</option>
                   </select>
                   <SubmitButton label="Record payment" busyLabel="Saving…" />
                 </form>

@@ -64,11 +64,17 @@ export async function deleteStore(fd) {
 export async function setMembership(fd) {
   if (!(await isAdmin())) redirect('/admin');
   const id = (fd.get('id') || '').toString();
-  const plan = PLANS.find((p) => p.key === (fd.get('plan') || '').toString());
-  if (!plan) go('error', 'Choose a membership plan.');
+  const planKey = (fd.get('plan') || '').toString();
+  const plan = PLANS.find((p) => p.key === planKey);
+  if (!plan && planKey !== 'life') go('error', 'Choose a membership plan.');
   const db = admin();
   const { data: s } = await db.from('stores').select('*').eq('id', id).maybeSingle();
   if (!s) go('error', 'Store not found.');
+  if (planKey === 'life') {
+    const rl = await db.from('stores').update({ member_plan: 'life', member_until: null }).eq('id', s.id);
+    if (rl.error) go('error', 'Could not save the membership: ' + (rl.error.message || '').slice(0, 120));
+    go('msg', `${s.business_name}: lifetime membership recorded.`);
+  }
   const today = todayIST();
   const base = s.member_until && s.member_until >= today ? s.member_until : today;
   const until = addMonths(base, plan.months);
