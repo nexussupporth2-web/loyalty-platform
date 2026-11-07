@@ -1,8 +1,9 @@
 import { headers } from 'next/headers';
-import { mapHref } from '../lib/links';
+import { addressText } from '../lib/links';
 import StoreHeader from './StoreHeader';
 import StoreGallery from './StoreGallery';
 import StandeeSection from './StandeeSection';
+import RollDown from './RollDown';
 import StoreCard from './StoreCard';
 import ActivateMembership from './ActivateMembership';
 import { BRAND_LOGO } from '../lib/brandLogo';
@@ -53,8 +54,14 @@ export default function StoreFront({ store: s, mode, searchParams = {}, cardNo =
         }
       />
 
+      {s.slogan && <p style={{ textAlign: 'center', fontSize: 18, fontWeight: 700, lineHeight: 1.35, margin: '20px 8px 8px' }}>{s.slogan}</p>}
       <StoreGallery images={s.store_images} />
-      {s.business_details && <p>{s.business_details}</p>}
+      {s.business_details && <p style={{ textAlign: 'center' }}>{s.business_details}</p>}
+
+      <p style={{ textAlign: 'center', fontWeight: 700, margin: '16px 0 4px' }}>
+        {s.contact_person} · <a href={`tel:${s.contact_number.replace(/[^+\d]/g, '')}`}>{s.contact_number}</a>
+      </p>
+      {addressText(s) && <p style={{ textAlign: 'center', whiteSpace: 'pre-line', margin: '4px 0 12px' }}>{addressText(s)}</p>}
 
       {manager && cardNo && (
         <>
@@ -86,6 +93,10 @@ export default function StoreFront({ store: s, mode, searchParams = {}, cardNo =
         </>
       )}
 
+      {manager && (
+        <a className="btn" href={`/s/${s.slug}/ledger`} style={{ marginTop: 16 }}>Customer ledger</a>
+      )}
+
       {!manager && (ms.state === 'expired' || ms.state === 'none') ? (
         <div className="msg err" style={{ wordBreak: 'normal' }}>
           Joining and new purchase entries are paused at this store for now. Please contact the store.
@@ -99,19 +110,10 @@ export default function StoreFront({ store: s, mode, searchParams = {}, cardNo =
         </>
       )}
 
-      <h2>Contact</h2>
-      <p>{s.contact_person}<br /><a href={`tel:${s.contact_number.replace(/[^+\d]/g, '')}`}>{s.contact_number}</a></p>
-      <p>{s.address}<br /><a href={mapHref(s)} target="_blank" rel="noopener noreferrer">Open in maps</a></p>
-
       {manager && (
-        <a className="btn" href={`/s/${s.slug}/ledger`} style={{ marginTop: 24 }}>Customer ledger</a>
-      )}
-
-      {manager && (
-        <>
-          <h2>QR standee</h2>
+        <RollDown label="QR standee">
           <StandeeSection store={s} url={url} showActions />
-        </>
+        </RollDown>
       )}
     </>
   );

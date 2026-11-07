@@ -1,4 +1,4 @@
-import { socialLinks, mapHref } from '../lib/links';
+import { socialLinks, mapHref, hasMapLink } from '../lib/links';
 
 // Original brand logos. Each one fills the same 1:1 square, with no circle or background behind it.
 const BRAND = {
@@ -76,37 +76,29 @@ export default function StoreHeader({ store: s, gearHref, showGear = true, note 
   const links = socialLinks(s);
   const icons = links.filter((l) => l.key !== 'review');
   const review = links.find((l) => l.key === 'review');
+  const showMap = hasMapLink(s);
+  // Store name stays on one line: 20px as before, smaller only when the name is very long.
+  const nameSize = Math.max(11, Math.min(20, Math.floor(320 / ((s.business_name || '').length * 0.68 || 1))));
 
   return (
     <>
       <style>{`
-        .sh{display:flex;gap:16px;align-items:stretch}
-        .sh-left,.sh-right{flex:1 1 0;min-width:0;display:flex;flex-direction:column}
-        .sh-right{gap:10px}
-        .sh-bottom{margin-top:auto}
-        .sh-note{flex:1 1 auto;display:flex;align-items:center;justify-content:center;text-align:center}
-        .sh-logo{width:75%;aspect-ratio:1;border-radius:50%;object-fit:cover;background:#fff;border:4px solid #fff;box-shadow:var(--shadow);display:block}
-        .sh-name{font-size:20px;font-weight:800;text-transform:uppercase;line-height:1.15;margin:12px 0 0;word-break:break-word}
-        .sh-gear{align-self:flex-end;color:var(--tx2);padding:4px;display:flex}
-        .sh-icons{width:75%;display:grid;grid-template-columns:1fr 1fr;gap:10px}
-        .sh-icons a{display:block;aspect-ratio:1/1}
+        .sh-top{display:flex;align-items:center;gap:14px}
+        .sh-logo{width:88px;height:88px;flex:none;border-radius:50%;object-fit:cover;background:#fff;border:4px solid #fff;box-shadow:var(--shadow);display:block}
+        .sh-topright{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+        .sh-gear{color:var(--tx2);padding:2px;display:flex}
+        .sh-icons{display:flex;gap:8px;justify-content:flex-end;max-width:100%}
+        .sh-icons a{display:block;width:44px;height:44px;flex:0 1 44px}
         .sh-icons svg{width:100%;height:100%;display:block}
-        .sh-review{display:block;text-align:center;background:var(--card);border:1.5px solid var(--bd);border-radius:16px;padding:10px 8px;font-weight:800;font-size:14px;text-decoration:none;color:var(--tx);box-shadow:var(--shadow)}
-        .sh-slogan{text-align:center;font-size:18px;font-weight:700;line-height:1.35;margin:24px 8px 8px}
+        .sh-note{text-align:center;margin-top:12px}
+        .sh-name{font-weight:800;text-transform:uppercase;line-height:1.15;margin:14px 0 0;text-align:center;white-space:nowrap}
+        .sh-btns{display:flex;gap:10px;justify-content:center;margin-top:12px}
+        .sh-review{display:block;flex:0 1 calc(50% - 5px);text-align:center;background:var(--card);border:1.5px solid var(--bd);border-radius:16px;padding:10px 8px;font-weight:800;font-size:14px;text-decoration:none;color:var(--tx);box-shadow:var(--shadow)}
       `}</style>
 
-      <div className="sh">
-        <div className="sh-left">
-          <img className="sh-logo" src={s.logo_url} alt={`${s.business_name} logo`} />
-          <h1 className="sh-name">{s.business_name}</h1>
-          <div className="sh-bottom" style={{ paddingTop: 10 }}>
-            <a className="sh-review" href={mapHref(s)} target="_blank" rel="noopener noreferrer">
-              Google Location
-            </a>
-          </div>
-        </div>
-
-        <div className="sh-right">
+      <div className="sh-top">
+        <img className="sh-logo" src={s.logo_url} alt={`${s.business_name} logo`} />
+        <div className="sh-topright">
           {showGear && (
             <a className="sh-gear" href={gearHref || `/s/${s.slug}/edit`} aria-label="Store settings">
               <Gear size={28} />
@@ -127,16 +119,27 @@ export default function StoreHeader({ store: s, gearHref, showGear = true, note 
               ))}
             </div>
           )}
-          {note && <div className="sh-note">{note}</div>}
+        </div>
+      </div>
+
+      {note && <div className="sh-note">{note}</div>}
+
+      <h1 className="sh-name" style={{ fontSize: nameSize }}>{s.business_name}</h1>
+
+      {(showMap || review) && (
+        <div className="sh-btns">
+          {showMap && (
+            <a className="sh-review" href={mapHref(s)} target="_blank" rel="noopener noreferrer">
+              Google Location
+            </a>
+          )}
           {review && (
-            <a className="sh-review sh-bottom" href={review.href} target="_blank" rel="noopener noreferrer">
+            <a className="sh-review" href={review.href} target="_blank" rel="noopener noreferrer">
               <span style={{ color: '#E3A93B' }}>★</span> Google reviews
             </a>
           )}
         </div>
-      </div>
-
-      {s.slogan && <p className="sh-slogan">{s.slogan}</p>}
+      )}
     </>
   );
 }
