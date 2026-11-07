@@ -14,12 +14,13 @@ async function guard(fd) {
   const db = admin();
   const { data: s } = await db.from('stores').select('*').eq('slug', slug).maybeSingle();
   if (!s || ((await getOwnerSession()) !== s.id && !(await isAdmin()))) redirect(`/s/${slug}/edit`);
-  const back = (msg) => redirect(`/s/${slug}/ledger?${q ? 'q=' + q + '&' : ''}msg=${encodeURIComponent(msg)}`);
+  const back = (msg, open) => redirect(`/s/${slug}/ledger?${q ? 'q=' + q + '&' : ''}${open ? 'open=' + open + '&' : ''}msg=${encodeURIComponent(msg)}`);
   return { db, s, slug, back };
 }
 
 export async function approveEntry(fd) {
-  const { db, s, back } = await guard(fd);
+  const { db, s, back: backTo } = await guard(fd);
+  const back = (m) => backTo(m, 'waiting');
   const id = (fd.get('id') || '').toString();
   const { data: e } = await db.from('entries').select('id,amount,status').eq('id', id).eq('store_id', s.id).maybeSingle();
   if (!e || e.status !== 'pending') back('That entry is no longer waiting.');
@@ -29,7 +30,8 @@ export async function approveEntry(fd) {
 }
 
 export async function rejectEntry(fd) {
-  const { db, s, back } = await guard(fd);
+  const { db, s, back: backTo } = await guard(fd);
+  const back = (m) => backTo(m, 'waiting');
   const id = (fd.get('id') || '').toString();
   const why = (fd.get('reason') || 'Other').toString().slice(0, 80);
   const { data: e } = await db.from('entries').select('id,status').eq('id', id).eq('store_id', s.id).maybeSingle();

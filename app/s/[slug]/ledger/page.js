@@ -7,6 +7,7 @@ import { inScheme } from '../../../../lib/scheme';
 import Statement from '../../../../components/Statement';
 import SubmitButton from '../../../../components/SubmitButton';
 import ConfirmButton from '../../../../components/ConfirmButton';
+import SlidePanels from '../../../../components/SlidePanels';
 import { approveEntry, rejectEntry, redeemPoints, deleteCustomer } from './actions';
 import { deleteCustomers } from './bulk';
 
@@ -84,15 +85,19 @@ export default async function LedgerPage({ params, searchParams }) {
 
   const q = (searchParams.q || '').toString().replace(/\D/g, '').slice(0, 6);
   const sort = ['new', 'az', 'points'].includes(searchParams.sort) ? searchParams.sort : 'new';
-  let content = null;
+  let searchContent = null;
+  let customersNode = null;
+  let waitingNode = null;
+  let nPeople = 0;
+  let nWait = 0;
 
   if (q.length === 6) {
     const { data: ms } = await db.from('memberships').select('id,member_no,customer_id')
       .eq('store_id', s.id).like('member_no', `%${q}`);
     if (!ms || !ms.length) {
-      content = <p style={{ marginTop: 16 }}>No customer found with a card ending in {q}.</p>;
+      searchContent = <p style={{ marginTop: 16 }}>No customer found with a card ending in {q}.</p>;
     } else {
-      content = [];
+      searchContent = [];
       for (const m of ms) {
         const { data: c } = await db.from('customers').select('name,phone,email').eq('id', m.customer_id).maybeSingle();
         const { data: esAll } = await db.from('entries').select('*').eq('membership_id', m.id).order('created_at', { ascending: false });
@@ -101,7 +106,7 @@ export default async function LedgerPage({ params, searchParams }) {
         const rs = inScheme(s, rsAll);
         const { rows, totals } = buildLedger(es || [], rs || []);
         const urls = await signedMap(db, es || []);
-        content.push(
+        searchContent.push(
           <section key={m.id} style={{ marginTop: 24 }}>
             <h2 style={{ marginBottom: 2 }}>{c?.name || 'Customer'}</h2>
             <div className="sub">
@@ -144,7 +149,9 @@ export default async function LedgerPage({ params, searchParams }) {
         );
       }
     }
-  } else {
+  }
+
+  {
     // All registered customers
     const { data: mems } = await db.from('memberships').select('id,member_no,customer_id,created_at').eq('store_id', s.id);
     const cids = [...new Set((mems || []).map((m) => m.customer_id))];
@@ -188,9 +195,10 @@ export default async function LedgerPage({ params, searchParams }) {
     }
     const urls = await signedMap(db, list);
 
-    content = (
+    nPeople = people.length;
+    nWait = list.length;
+    customersNode = (
       <>
-        <h2>Registered customers ({people.length})</h2>
         <form method="get" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <select name="sort" defaultValue={sort} aria-label="Sort customers" style={{ flex: 1 }}>
             <option value="new">Newly first</option>
@@ -201,51 +209,45 @@ export default async function LedgerPage({ params, searchParams }) {
         </form>
 
         {people.length === 0 ? (
-          <p className="sub">No customers yet.</p>
+          <p className="sub" style={{ textAlign: 'center' }}>No customers yet.</p>
         ) : (
-          <form action={deleteCustomers} style={{ marginTop: 12 }}>
-            <input type="hidden" name="slug" value={s.slug} />
-            <input type="hidden" name="sort" value={sort} />
-            <div style={{ border: '1px solid var(--bd)', background: 'var(--card)', borderRadius: 14, overflow: 'hidden' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
-                <thead>
-                  <tr>
-                    <th style={{ ...th, width: 36 }} />
-                    <th style={th}>Name</th>
-                    <th style={th}>Card (last 6)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {people.map((p) => (
-                    <tr key={p.id}>
-                      <td style={td}>
-                        <input
-                          type="checkbox"
-                          name="ids"
-                          value={p.id}
-                          aria-label={`Select ${p.name}`}
-                          style={{ width: 20, height: 20, padding: 0, margin: 0, display: 'block' }}
+          <div style={{ border: '1px solid var(--bd)', background: 'var(--card)', borderRadius: 14, overflow: 'hidden', marginTop: 12 }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+              <thead>
+                <tr>
+                  <th style={th}>Name</th>
+                  <th style={th}>Card (last 6)</th>
+                  <th style={{ ...th, width: 56 }} />
+                </tr>
+              </thead>
+              <tbody>
+                {people.map((p) => (
+                  <tr key={p.id}>
+                    <td style={{ ...td, fontWeight: 600 }}>{p.name}</td>
+                    <td style={{ ...td, fontFamily: 'ui-monospace, Menlo, monospace', letterSpacing: 1 }}>{p.last6}</td>
+                    <td style={td}>
+                      <form action={deleteCustomers}>
+                        <input type="hidden" name="slug" value={s.slug} />
+                        <input type="hidden" name="sort" value={sort} />
+                        <input type="hidden" name="ids" value={p.id} />
+                        <ConfirmButton
+                          label="🗑"
+                          message={`Delete ${p.name} and all their entries? This cannot be undone.`}
+                          style={{ width: 'auto', padding: '6px 10px', background: '#F7D7D1', color: '#8A3A32', boxShadow: 'none', borderRadius: 12 }}
                         />
-                      </td>
-                      <td style={{ ...td, fontWeight: 600 }}>{p.name}</td>
-                      <td style={{ ...td, fontFamily: 'ui-monospace, Menlo, monospace', letterSpacing: 1 }}>{p.last6}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <div style={{ marginTop: 12 }}>
-              <ConfirmButton
-                label="Delete selected"
-                message="Delete the selected customers and all their entries? This cannot be undone."
-                style={{ background: '#F7D7D1', color: '#8A3A32', boxShadow: 'none' }}
-              />
-            </div>
-          </form>
+                      </form>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
-
-        <h2>Waiting for your check ({list.length})</h2>
-        {list.length === 0 && <p className="sub">Nothing is waiting. New entries appear here.</p>}
+      </>
+    );
+    waitingNode = (
+      <>
+        {list.length === 0 && <p className="sub" style={{ textAlign: 'center' }}>Nothing is waiting. New entries appear here.</p>}
         {list.map((e) => (
           <EntryCard key={e.id} e={e} url={urls[e.bill_path]} slug={s.slug} q="" who={who[e.membership_id]} />
         ))}
@@ -255,16 +257,31 @@ export default async function LedgerPage({ params, searchParams }) {
 
   return (
     <>
-      <h1>Customer ledger</h1>
-      <p className="sub">{s.business_name}</p>
+      <h1 style={{ textAlign: 'center' }}>Customer ledger</h1>
+      <p className="sub" style={{ textAlign: 'center', fontWeight: 400, fontSize: 13, margin: '0 0 4px' }}>{s.business_name}</p>
       {searchParams.msg && <div className="msg ok">{searchParams.msg}</div>}
-      <form method="get" style={{ marginTop: 12 }}>
-        <label htmlFor="q">Last 6 digits of the customer card</label>
-        <input id="q" name="q" inputMode="numeric" maxLength={6} pattern="\d{6}" defaultValue={q} placeholder="e.g. 123456" />
-        <button className="btn" type="submit" style={{ marginTop: 12 }}>Search</button>
-      </form>
-      {content}
-      <p style={{ marginTop: 24 }}><a href={`/s/${s.slug}/edit`}>Back to store settings</a></p>
+      <SlidePanels
+        initial={q.length === 6 ? 'search' : searchParams.open || (searchParams.sort ? 'customers' : null)}
+        items={[
+          {
+            key: 'search',
+            label: 'Search',
+            node: (
+              <div>
+                <form method="get">
+                  <label htmlFor="q">Last 6 digits of the customer card</label>
+                  <input id="q" name="q" inputMode="numeric" maxLength={6} pattern="\d{6}" defaultValue={q} placeholder="e.g. 123456" />
+                  <button className="btn" type="submit" style={{ marginTop: 12 }}>Find customer</button>
+                </form>
+                {searchContent}
+              </div>
+            ),
+          },
+          { key: 'customers', label: `Registered customers (${nPeople})`, node: customersNode },
+          { key: 'waiting', label: `Waiting for your check (${nWait})`, node: waitingNode },
+        ]}
+      />
+      <p style={{ marginTop: 24, textAlign: 'center' }}><a href={`/s/${s.slug}/edit`}>Back to store settings</a></p>
     </>
   );
-        }
+}
