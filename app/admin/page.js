@@ -1,10 +1,14 @@
 import { admin } from '../../lib/supabase';
 import { isAdmin } from '../../lib/session';
 import SubmitButton from '../../components/SubmitButton';
+import SlidePanels from '../../components/SlidePanels';
+import RegisterForm from '../register/RegisterForm';
 import { adminLogin, adminLogout, deleteStore, setMembership, generateCode, saveFeeLines, saveStoreFeeLines } from './actions';
 import { PLANS, CODE_PLANS, defaultFeeLines, splitFeeLines, membershipStatus, prettyDate, showCode } from '../../lib/membership';
 
 export const dynamic = 'force-dynamic';
+
+const BOX = { border: '1px solid var(--bd)', background: 'var(--card)', borderRadius: 14, padding: 12 };
 
 export default async function AdminPage({ searchParams }) {
   const err = searchParams.error ? <div className="msg err" role="alert">{searchParams.error}</div> : null;
@@ -47,47 +51,66 @@ export default async function AdminPage({ searchParams }) {
   return (
     <>
       <h1>MASTER ADMIN</h1>
-      <a className="btn" href="/register" style={{ margin: '12px 0' }}>Register a new store</a>
-      <a className="btn" href="/admin?fees=1" style={{ margin: '12px 0' }}>Registration fee slab</a>
-      <form method="get" action="/admin" style={{ margin: '12px 0' }}>
-        <input name="q" defaultValue={q} placeholder="Store name or last 6 digits of card" autoComplete="off" />
-        <button className="btn" type="submit" style={{ marginTop: 8 }}>Search existing store</button>
-      </form>
       {err}
       {msg}
-      <div style={{ border: '1px solid var(--bd)', background: 'var(--card)', borderRadius: 14, padding: 12, marginTop: 12 }}>
-        <strong>Activation codes</strong>
-        <form action={generateCode} style={{ marginTop: 6 }}>
-          <label htmlFor="code-plan">Make a one-time code for</label>
-          <select id="code-plan" name="plan" defaultValue="12">
-            {CODE_PLANS.map((p) => (
-              <option key={p.key} value={p.key}>{p.price ? `${p.label} (₹${p.price})` : p.label}</option>
-            ))}
-          </select>
-          <SubmitButton label="Generate code" busyLabel="Making…" />
-        </form>
-        {(codes || []).length > 0 && (
-          <>
-            <p className="sub" style={{ margin: '10px 0 4px' }}>Unused codes</p>
-            {(codes || []).map((c) => (
-              <div key={c.code} className="sub" style={{ fontFamily: 'ui-monospace, Menlo, Consolas, monospace' }}>
-                {showCode(c.code)} · {(CODE_PLANS.find((p) => p.key === c.plan) || {}).label || c.plan}
+      <SlidePanels
+        initial={searchParams.open || (searchParams.fees ? 'fees' : q ? 'search' : null)}
+        items={[
+          {
+            key: 'fees',
+            label: 'Registration fee slab',
+            node: (
+              <div style={BOX}>
+                <strong>Registration fee slab (same for all stores)</strong>
+                <form action={saveFeeLines} style={{ marginTop: 6 }}>
+                  <label htmlFor="fee-lines">One line per plan, up to 5. Put * on the recommended one. Leave empty for the standard lines.</label>
+                  <textarea id="fee-lines" name="lines" rows={5} maxLength={400} defaultValue={(sharedLines.length ? sharedLines : defaultFeeLines()).join('\n')} />
+                  <SubmitButton label="Save fee lines" busyLabel="Saving…" />
+                </form>
               </div>
-            ))}
-          </>
-        )}
-      </div>
-      {searchParams.fees && (
-      <div style={{ border: '1px solid var(--bd)', background: 'var(--card)', borderRadius: 14, padding: 12, marginTop: 12 }}>
-        <strong>Registration fee slab (same for all stores)</strong>
-        <form action={saveFeeLines} style={{ marginTop: 6 }}>
-          <label htmlFor="fee-lines">One line per plan, up to 5. Put * on the recommended one. Leave empty for the standard lines.</label>
-          <textarea id="fee-lines" name="lines" rows={5} maxLength={400} defaultValue={(sharedLines.length ? sharedLines : defaultFeeLines()).join('\n')} />
-          <SubmitButton label="Save fee lines" busyLabel="Saving…" />
-        </form>
-        <p style={{ margin: '8px 0 0' }}><a href="/admin">Close</a></p>
-      </div>
-      )}
+            ),
+          },
+          {
+            key: 'search',
+            label: 'Search existing store',
+            node: (
+              <form method="get" action="/admin">
+                <input name="q" defaultValue={q} placeholder="Store name or last 6 digits of card" autoComplete="off" />
+                <button className="btn" type="submit" style={{ marginTop: 8 }}>Search</button>
+              </form>
+            ),
+          },
+          { key: 'register', label: 'Register a new store', node: <RegisterForm /> },
+          {
+            key: 'codes',
+            label: 'Generate code',
+            node: (
+              <div style={BOX}>
+                <strong>Activation codes</strong>
+                <form action={generateCode} style={{ marginTop: 6 }}>
+                  <label htmlFor="code-plan">Make a one-time code for</label>
+                  <select id="code-plan" name="plan" defaultValue="12">
+                    {CODE_PLANS.map((p) => (
+                      <option key={p.key} value={p.key}>{p.price ? `${p.label} (₹${p.price})` : p.label}</option>
+                    ))}
+                  </select>
+                  <SubmitButton label="Generate code" busyLabel="Making…" />
+                </form>
+                {(codes || []).length > 0 && (
+                  <>
+                    <p className="sub" style={{ margin: '10px 0 4px' }}>Unused codes</p>
+                    {(codes || []).map((c) => (
+                      <div key={c.code} className="sub" style={{ fontFamily: 'ui-monospace, Menlo, Consolas, monospace' }}>
+                        {showCode(c.code)} · {(CODE_PLANS.find((p) => p.key === c.plan) || {}).label || c.plan}
+                      </div>
+                    ))}
+                  </>
+                )}
+              </div>
+            ),
+          },
+        ]}
+      />
       {shown.map((s) => (
         <div key={s.id} id={`store-${s.id}`} style={{ border: '1px solid var(--bd)', background: 'var(--card)', borderRadius: 14, padding: 12, marginTop: 12 }}>
           <strong>
