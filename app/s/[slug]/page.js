@@ -4,7 +4,7 @@ import { getOwnerSession, isAdmin } from '../../../lib/session';
 import SubmitButton from '../../../components/SubmitButton';
 import StoreFront from '../../../components/StoreFront';
 import { ownerLogin } from './edit/actions';
-import { ensureStoreCardNo } from '../../../lib/membership';
+import { ensureStoreCardNo, feeLinesFor } from '../../../lib/membership';
 
 export const dynamic = 'force-dynamic';
 
@@ -42,5 +42,6 @@ export default async function StorePage({ params, searchParams }) {
   }
 
   const cardNo = await ensureStoreCardNo(admin(), s);
-  return <StoreFront store={s} mode="manager" searchParams={searchParams} cardNo={cardNo} />;
+  const feeLines = await feeLinesFor(admin(), s);
+  return <StoreFront store={s} mode="manager" searchParams={searchParams} cardNo={cardNo} feeLines={feeLines} />;
 }
