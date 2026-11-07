@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import { admin } from '../../../../lib/supabase';
 import { getOwnerSession, isAdmin } from '../../../../lib/session';
 import { earnedFor } from '../../../../lib/points';
-import { inScheme } from '../../../../lib/scheme';
+import { inScheme, attachReset } from '../../../../lib/scheme';
 
 const sum = (rows) => (rows || []).reduce((t, r) => t + r.points, 0);
 
@@ -47,6 +47,7 @@ export async function redeemPoints(fd) {
   if (!m) back('Customer not found.');
   const pts = Math.floor(Number(fd.get('points')));
   if (!(pts > 0)) back('Enter the number of points to redeem.');
+  await attachReset(db, s);
   const { data: es } = await db.from('entries').select('points,created_at').eq('membership_id', mid).eq('status', 'verified');
   const { data: rs } = await db.from('redemptions').select('points,created_at').eq('membership_id', mid);
   const available = sum(inScheme(s, es)) - sum(inScheme(s, rs));

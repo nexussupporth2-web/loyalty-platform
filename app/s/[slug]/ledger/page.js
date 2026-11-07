@@ -3,7 +3,7 @@ import { admin } from '../../../../lib/supabase';
 import { getOwnerSession, isAdmin } from '../../../../lib/session';
 import { buildLedger } from '../../../../lib/ledger';
 import { earnedFor } from '../../../../lib/points';
-import { inScheme } from '../../../../lib/scheme';
+import { inScheme, attachReset } from '../../../../lib/scheme';
 import Statement from '../../../../components/Statement';
 import SubmitButton from '../../../../components/SubmitButton';
 import ConfirmButton from '../../../../components/ConfirmButton';
@@ -81,6 +81,7 @@ export default async function LedgerPage({ params, searchParams }) {
   const db = admin();
   const { data: s } = await db.from('stores').select('*').eq('slug', params.slug).maybeSingle();
   if (!s) notFound();
+  await attachReset(db, s);
   if (((await getOwnerSession()) !== s.id && !(await isAdmin()))) redirect(`/s/${s.slug}/edit`);
 
   const q = (searchParams.q || '').toString().replace(/\D/g, '').slice(0, 6);
