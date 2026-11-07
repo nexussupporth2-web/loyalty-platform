@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import { admin } from '../../../../lib/supabase';
 import { getSession } from '../../../../lib/session';
 import { isExpired } from '../../../../lib/membership';
-import { schemeEnded } from '../../../../lib/scheme';
+import { schemeEnded, schemeNotStarted } from '../../../../lib/scheme';
 import { earnedFor } from '../../../../lib/points';
 
 export async function addEntry(fd) {
@@ -19,6 +19,7 @@ export async function addEntry(fd) {
   const { data: s } = await db.from('stores').select('*').eq('slug', slug).eq('status', 'active').maybeSingle();
   if (!s) redirect('/');
   if (isExpired(s)) oops('New purchase entries are paused at this store for now. Please contact the store.');
+  if (schemeNotStarted(s)) oops(`This offer scheme starts on ${s.scheme_start}. New entries open from that date.`);
   if (schemeEnded(s)) oops('This offer scheme has ended. New entries are paused until the store starts a new scheme.');
   const { data: m } = await db.from('memberships').select('id')
     .eq('store_id', s.id).eq('customer_id', cid).maybeSingle();

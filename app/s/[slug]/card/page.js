@@ -8,7 +8,7 @@ import FlipCard from '../../../../components/FlipCard';
 import CardLinks from '../../../../components/CardLinks';
 import SubmitButton from '../../../../components/SubmitButton';
 import BillInput from '../../../../components/BillInput';
-import { inScheme } from '../../../../lib/scheme';
+import { inScheme, attachReset } from '../../../../lib/scheme';
 import Statement from '../../../../components/Statement';
 
 export const dynamic = 'force-dynamic';
@@ -37,6 +37,7 @@ export default async function CardPage({ params, searchParams }) {
   const { data: c } = await db.from('customers').select('name').eq('id', cid).maybeSingle();
   if (!m || !c) redirect(`/s/${s.slug}/join?mode=login`);
 
+  await attachReset(db, s);
   const { data: entriesAll } = await db.from('entries').select('*').eq('membership_id', m.id);
   const { data: redsAll } = await db.from('redemptions').select('*').eq('membership_id', m.id);
   const entries = inScheme(s, entriesAll);
