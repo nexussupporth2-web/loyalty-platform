@@ -48,13 +48,15 @@ export async function saveStore(fd) {
 
   const update = { ...x.f, ...socialColumns(x.social) };
   const sc = readScheme(fd);
-  if (sc.end && !/^\d{4}-\d{2}-\d{2}$/.test(sc.end)) back(slug, 'Please pick a valid scheme end date.');
+  const dateOk = (d) => !d || /^\d{4}-\d{2}-\d{2}$/.test(d);
+  if (!dateOk(sc.start) || !dateOk(sc.end)) back(slug, 'Please pick valid scheme dates.');
+  if (sc.start && sc.end && sc.start > sc.end) back(slug, 'The scheme starting date must be before the ending date.');
   const oldEnd = s.scheme_end || '';
-  if (sc.end !== oldEnd) {
-    if (sc.end && sc.end < todayIST()) back(slug, 'The scheme end date cannot be in the past.');
-    // A new scheme after an ended one starts fresh today, so old entries stay at zero.
-    if (schemeEnded(s)) update.scheme_start = todayIST();
-  }
+  if (sc.end !== oldEnd && sc.end && sc.end < todayIST()) back(slug, 'The scheme ending date cannot be in the past.');
+  let start = sc.start;
+  // A new scheme after an ended one, with no starting date given, starts fresh today so old entries stay at zero.
+  if (!start && sc.end !== oldEnd && schemeEnded(s)) start = todayIST();
+  update.scheme_start = start || null;
   update.scheme_end = sc.end || null;
   update.auto_approve = sc.auto;
   // Only the master admin can see or change the Place ID; for everyone else it stays as it is.
