@@ -1,8 +1,8 @@
 import { admin } from '../../lib/supabase';
 import { isAdmin } from '../../lib/session';
 import SubmitButton from '../../components/SubmitButton';
-import { adminLogin, adminLogout, deleteStore, setMembership, generateCode } from './actions';
-import { PLANS, CODE_PLANS, membershipStatus, prettyDate, showCode } from '../../lib/membership';
+import { adminLogin, adminLogout, deleteStore, setMembership, generateCode, saveFeeLines, saveStoreFeeLines } from './actions';
+import { PLANS, CODE_PLANS, defaultFeeLines, splitFeeLines, membershipStatus, prettyDate, showCode } from '../../lib/membership';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,7 +13,7 @@ export default async function AdminPage({ searchParams }) {
   if (!(await isAdmin())) {
     return (
       <>
-        <h1>Main admin</h1>
+        <h1>MASTER ADMIN</h1>
         {err}
         <form action={adminLogin}>
           <label htmlFor="admin_id">Admin ID</label>
@@ -33,6 +33,8 @@ export default async function AdminPage({ searchParams }) {
   const { data: ms } = await db.from('memberships').select('store_id');
   const { data: codes } = await db.from('activation_codes').select('code,plan,created_at')
     .is('used_at', null).order('created_at', { ascending: false }).limit(20);
+  const { data: feeRow, error: feeErr } = await db.from('app_settings').select('value').eq('key', 'fee_lines').maybeSingle();
+  const sharedLines = (feeErr ? [] : splitFeeLines(feeRow && feeRow.value));
   const q = (searchParams.q || '').toString().trim();
   const qDigits = q.replace(/\D/g, '');
   const shown = !q ? (stores || []) : (stores || []).filter((s) =>
@@ -44,9 +46,9 @@ export default async function AdminPage({ searchParams }) {
 
   return (
     <>
-      <h1>Main admin</h1>
-      <p className="sub">{q ? `${shown.length} of ${(stores || []).length} stores` : `${(stores || []).length} stores`}</p>
+      <h1>MASTER ADMIN</h1>
       <a className="btn" href="/register" style={{ margin: '12px 0' }}>Register a new store</a>
+      <a className="btn" href="/admin?fees=1" style={{ margin: '12px 0' }}>Registration fee slab</a>
       <form method="get" action="/admin" style={{ margin: '12px 0' }}>
         <input name="q" defaultValue={q} placeholder="Store name or last 6 digits of card" autoComplete="off" />
         <button className="btn" type="submit" style={{ marginTop: 8 }}>Search existing store</button>
@@ -75,9 +77,32 @@ export default async function AdminPage({ searchParams }) {
           </>
         )}
       </div>
+      {searchParams.fees && (
+      <div style={{ border: '1px solid var(--bd)', background: 'var(--card)', borderRadius: 14, padding: 12, marginTop: 12 }}>
+        <strong>Registration fee slab (same for all stores)</strong>
+        <form action={saveFeeLines} style={{ marginTop: 6 }}>
+          <label htmlFor="fee-lines">One line per plan, up to 5. Put * on the recommended one. Leave empty for the standard lines.</label>
+          <textarea id="fee-lines" name="lines" rows={5} maxLength={400} defaultValue={(sharedLines.length ? sharedLines : defaultFeeLines()).join('\n')} />
+          <SubmitButton label="Save fee lines" busyLabel="Saving…" />
+        </form>
+        <p style={{ margin: '8px 0 0' }}><a href="/admin">Close</a></p>
+      </div>
+      )}
       {shown.map((s) => (
-        <div key={s.id} style={{ border: '1px solid var(--bd)', background: 'var(--card)', borderRadius: 14, padding: 12, marginTop: 12 }}>
-          <strong><a href={`/s/${s.slug}?manager=1`}>{s.business_name}</a></strong>
+        <div key={s.id} id={`store-${s.id}`} style={{ border: '1px solid var(--bd)', background: 'var(--card)', borderRadius: 14, padding: 12, marginTop: 12 }}>
+          <strong>
+            <a href={`/admin?edit=${s.id}#store-${s.id}`} aria-label={`Edit fee slab of ${s.business_name}`} title="Edit fee slab" style={{ textDecoration: 'none', marginRight: 8 }}>✏️</a>
+            <a href={`/s/${s.slug}?manager=1`}>{s.business_name}</a>
+          </strong>
+          {searchParams.edit === s.id && (
+            <form action={saveStoreFeeLines} style={{ margin: '8px 0' }}>
+              <input type="hidden" name="id" value={s.id} />
+              <label htmlFor={`fl-${s.id}`}>Fee slab for this store (one line per plan, up to 5, * marks the recommended one). Leave empty to use the shared slab.</label>
+              <textarea id={`fl-${s.id}`} name="lines" rows={5} maxLength={400} defaultValue={s.fee_lines || ''} />
+              <SubmitButton label="Save for this store" busyLabel="Saving…" />
+              <p style={{ margin: '8px 0 0' }}><a href="/admin">Close</a></p>
+            </form>
+          )}
           <div className="sub">{s.contact_person} · {s.contact_number}</div>
           <div className="sub">
             {counts[s.id] || 0} customers · created {new Date(s.created_at).toLocaleDateString('en-GB')}

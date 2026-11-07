@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import { timingSafeEqual } from 'crypto';
 import { admin } from '../../lib/supabase';
 import { setAdminSession, isAdmin, clearAdminSession } from '../../lib/session';
-import { PLANS, CODE_PLANS, addMonths, todayIST, prettyDate, makeActivationCode, showCode } from '../../lib/membership';
+import { PLANS, CODE_PLANS, splitFeeLines, addMonths, todayIST, prettyDate, makeActivationCode, showCode } from '../../lib/membership';
 
 const same = (a, b) => {
   const x = Buffer.from(a);
@@ -81,6 +81,24 @@ export async function setMembership(fd) {
   const r = await db.from('stores').update({ member_plan: plan.key, member_until: until }).eq('id', s.id);
   if (r.error) go('error', 'Could not save the membership: ' + (r.error.message || '').slice(0, 120) + ' (Run the membership SQL in Supabase first.)');
   go('msg', `${s.business_name}: membership now runs until ${prettyDate(until)}.`);
+}
+
+// Fee lines on the back of the store cards: one shared set, and an optional set for a single store.
+export async function saveFeeLines(fd) {
+  if (!(await isAdmin())) redirect('/admin');
+  const value = splitFeeLines(fd.get('lines')).join('\n');
+  const r = await admin().from('app_settings').upsert({ key: 'fee_lines', value });
+  if (r.error) go('error', 'Could not save the fee lines: ' + (r.error.message || '').slice(0, 120) + ' (Run the fee-lines SQL in Supabase first.)');
+  go('msg', value ? 'Fee lines saved for all store cards.' : 'Fee lines cleared. The standard lines are shown.');
+}
+
+export async function saveStoreFeeLines(fd) {
+  if (!(await isAdmin())) redirect('/admin');
+  const id = (fd.get('id') || '').toString();
+  const value = splitFeeLines(fd.get('lines')).join('\n');
+  const r = await admin().from('stores').update({ fee_lines: value || null }).eq('id', id);
+  if (r.error) go('error', 'Could not save the fee lines: ' + (r.error.message || '').slice(0, 120) + ' (Run the fee-lines SQL in Supabase first.)');
+  go('msg', value ? 'Fee lines saved for this store.' : 'This store now uses the shared fee lines.');
 }
 
 // Makes a one-time activation code for a plan. Give it to the store; it works once.
