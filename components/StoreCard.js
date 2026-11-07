@@ -10,7 +10,7 @@ function twoLines(name) {
   return [w.slice(0, i).join(' '), w.slice(i).join(' ')];
 }
 
-export default function StoreCard({ storeName, number, brandName, brandLogo, plans, until }) {
+export default function StoreCard({ storeName, number, brandName, brandLogo, lines, until }) {
   const [back, setBack] = useState(false);
   const [b1, b2] = twoLines(brandName);
   const face = { position: 'absolute', inset: 0, backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' };
@@ -60,14 +60,14 @@ export default function StoreCard({ storeName, number, brandName, brandLogo, pla
               <div className="in" style={{ gap: 4 }}>
                 <div className="sm" style={{ fontWeight: 700, letterSpacing: 1 }}>MEMBERSHIP FEE</div>
                 <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly', fontSize: 12.5, lineHeight: 1.25 }}>
-                  {plans.map((p) => (
-                    <div key={p.key} style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontWeight: p.recommended ? 700 : 400 }}>
-                      {p.label} @ ₹{p.rate} = ₹{p.price}{p.recommended ? ' *' : ''}
+                  {lines.map((l, i) => (
+                    <div key={i} style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontWeight: l.includes('*') ? 700 : 400 }}>
+                      {l}
                     </div>
                   ))}
                 </div>
                 <div className="row">
-                  <span className="sm">{plans.some((p) => p.recommended) ? '* Recommended' : ''}</span>
+                  <span className="sm">{lines.some((l) => l.includes('*')) ? '* Recommended' : ''}</span>
                   <span className="sm">{until === 'Lifetime' ? 'Lifetime membership' : until ? `Valid until ${until}` : 'Validity not set yet'}</span>
                 </div>
               </div>

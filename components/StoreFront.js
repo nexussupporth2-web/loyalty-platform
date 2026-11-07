@@ -6,11 +6,11 @@ import StandeeSection from './StandeeSection';
 import StoreCard from './StoreCard';
 import ActivateMembership from './ActivateMembership';
 import { BRAND_LOGO } from '../lib/brandLogo';
-import { BRAND_NAME, PLANS, membershipStatus, prettyDate } from '../lib/membership';
+import { BRAND_NAME, membershipStatus, prettyDate } from '../lib/membership';
 
 // mode = 'manager'  -> password-protected view (ledger button, standee with Download / Print)
 // mode = 'customer' -> public view (standee is shown only, no Download / Print)
-export default function StoreFront({ store: s, mode, searchParams = {}, cardNo = null }) {
+export default function StoreFront({ store: s, mode, searchParams = {}, cardNo = null, feeLines = [] }) {
   const manager = mode === 'manager';
   const ms = membershipStatus(s);
   const url = `https://${headers().get('host')}/s/${s.slug}`;
@@ -79,7 +79,7 @@ export default function StoreFront({ store: s, mode, searchParams = {}, cardNo =
               number={cardNo}
               brandName={BRAND_NAME}
               brandLogo={BRAND_LOGO}
-              plans={PLANS}
+              lines={feeLines}
               until={ms.state === 'life' ? 'Lifetime' : ms.until ? prettyDate(ms.until) : ''}
             />
           </div>
