@@ -1,5 +1,6 @@
 import LogoInput from './LogoInput';
 import ImagesInput from './ImagesInput';
+import ResetCards from './ResetCards';
 
 export default function StoreFields({
   d = {}, logoRequired = false, passwordLabel, passwordRequired = false, withImages = false, showPlaceId = false,
@@ -27,8 +28,14 @@ export default function StoreFields({
 
       {withImages && (
         <>
-          <label htmlFor="scheme_end">Scheme end date (all customers' entries and points go to zero after this date)</label>
-          <input id="scheme_end" name="scheme_end" type="date" defaultValue={v('scheme_end')} />
+          <label htmlFor="scheme_start">Scheme starting date</label>
+          <input id="scheme_start" name="scheme_start" type="date" defaultValue={v('scheme_start')} />
+          <label htmlFor="scheme_end">Scheme ending date (all customers' entries and points go to zero after this date)</label>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+            <input id="scheme_end" name="scheme_end" type="date" defaultValue={v('scheme_end')} style={{ flex: 1, minWidth: 0 }} />
+            {d.slug && <ResetCards slug={d.slug} />}
+          </div>
+          <p className="sub">If you leave both dates empty, the scheme continues until you decide.</p>
           <label style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '14px 0' }}>
             <input type="checkbox" name="auto_approve" defaultChecked={!!d.auto_approve} style={{ width: 'auto' }} />
             Approve customer entries automatically (points are added without checking)
