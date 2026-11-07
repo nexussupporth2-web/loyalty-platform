@@ -17,7 +17,7 @@ export default async function AdminPage({ searchParams }) {
   if (!(await isAdmin())) {
     return (
       <>
-        <h1>MASTER ADMIN</h1>
+        <h1 style={{ textAlign: 'center' }}>MASTER ADMIN</h1>
         {err}
         <form action={adminLogin}>
           <label htmlFor="admin_id">Admin ID</label>
@@ -50,11 +50,11 @@ export default async function AdminPage({ searchParams }) {
 
   return (
     <>
-      <h1>MASTER ADMIN</h1>
+      <h1 style={{ textAlign: 'center' }}>MASTER ADMIN</h1>
       {err}
       {msg}
       <SlidePanels
-        initial={searchParams.open || (searchParams.fees ? 'fees' : q ? 'search' : null)}
+        initial={searchParams.open || (searchParams.fees ? 'fees' : (q || searchParams.edit) ? 'stores' : null)}
         items={[
           {
             key: 'fees',
@@ -80,38 +80,13 @@ export default async function AdminPage({ searchParams }) {
               </form>
             ),
           },
-          { key: 'register', label: 'Register a new store', node: <RegisterForm /> },
           {
-            key: 'codes',
-            label: 'Generate code',
+            key: 'stores',
+            label: 'Registered stores',
             node: (
-              <div style={BOX}>
-                <strong>Activation codes</strong>
-                <form action={generateCode} style={{ marginTop: 6 }}>
-                  <label htmlFor="code-plan">Make a one-time code for</label>
-                  <select id="code-plan" name="plan" defaultValue="12">
-                    {CODE_PLANS.map((p) => (
-                      <option key={p.key} value={p.key}>{p.price ? `${p.label} (₹${p.price})` : p.label}</option>
-                    ))}
-                  </select>
-                  <SubmitButton label="Generate code" busyLabel="Making…" />
-                </form>
-                {(codes || []).length > 0 && (
-                  <>
-                    <p className="sub" style={{ margin: '10px 0 4px' }}>Unused codes</p>
-                    {(codes || []).map((c) => (
-                      <div key={c.code} className="sub" style={{ fontFamily: 'ui-monospace, Menlo, Consolas, monospace' }}>
-                        {showCode(c.code)} · {(CODE_PLANS.find((p) => p.key === c.plan) || {}).label || c.plan}
-                      </div>
-                    ))}
-                  </>
-                )}
-              </div>
-            ),
-          },
-        ]}
-      />
-      {shown.map((s) => (
+              <div>
+                {shown.length === 0 && <p className="sub" style={{ textAlign: 'center' }}>No store found.</p>}
+{shown.map((s) => (
         <div key={s.id} id={`store-${s.id}`} style={{ border: '1px solid var(--bd)', background: 'var(--card)', borderRadius: 14, padding: 12, marginTop: 12 }}>
           <strong>
             <a href={`/admin?edit=${s.id}#store-${s.id}`} aria-label={`Edit fee slab of ${s.business_name}`} title="Edit fee slab" style={{ textDecoration: 'none', marginRight: 8 }}>✏️</a>
@@ -167,6 +142,40 @@ export default async function AdminPage({ searchParams }) {
           </details>
         </div>
       ))}
+              </div>
+            ),
+          },
+          { key: 'register', label: 'Register a new store', node: <RegisterForm /> },
+          {
+            key: 'codes',
+            label: 'Generate code',
+            node: (
+              <div style={BOX}>
+                <strong>Activation codes</strong>
+                <form action={generateCode} style={{ marginTop: 6 }}>
+                  <label htmlFor="code-plan">Make a one-time code for</label>
+                  <select id="code-plan" name="plan" defaultValue="12">
+                    {CODE_PLANS.map((p) => (
+                      <option key={p.key} value={p.key}>{p.price ? `${p.label} (₹${p.price})` : p.label}</option>
+                    ))}
+                  </select>
+                  <SubmitButton label="Generate code" busyLabel="Making…" />
+                </form>
+                {(codes || []).length > 0 && (
+                  <>
+                    <p className="sub" style={{ margin: '10px 0 4px' }}>Unused codes</p>
+                    {(codes || []).map((c) => (
+                      <div key={c.code} className="sub" style={{ fontFamily: 'ui-monospace, Menlo, Consolas, monospace' }}>
+                        {showCode(c.code)} · {(CODE_PLANS.find((p) => p.key === c.plan) || {}).label || c.plan}
+                      </div>
+                    ))}
+                  </>
+                )}
+              </div>
+            ),
+          },
+        ]}
+      />
       <form action={adminLogout} style={{ marginTop: 20 }}>
         <button className="btn" type="submit" style={{ background: 'transparent', color: 'var(--tx)', border: '1px solid var(--bd)' }}>
           Log out
